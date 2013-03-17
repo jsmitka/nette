@@ -55,6 +55,9 @@ final class Request extends Nette\FreezableObject
 	/** @var array */
 	private $files;
 
+	/** @var bool */
+	private $current = FALSE;
+
 
 
 	/**
@@ -244,6 +247,27 @@ final class Request extends Nette\FreezableObject
 	public function hasFlag($flag)
 	{
 		return !empty($this->flags[$flag]);
+	}
+
+
+	/**
+	 * Checks if the generated request links to the current location.
+	 * @internal
+	 * @return bool
+	 */
+	public function isCurrent()
+	{
+		return $this->current;
+	}
+
+	/**
+	 * Sets the current flag for the request being generated.
+	 * @internal
+	 * @param $current
+	 */
+	public function setCurrent($current)
+	{
+		$this->current = $current;
 	}
 
 }

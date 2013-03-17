@@ -224,6 +224,9 @@ class NetteExtension extends Nette\Config\CompilerExtension
 		if ($config['mapping']) {
 			$presenterFactory->addSetup('$service->mapping = ? + $service->mapping;', array($config['mapping']));
 		}
+
+		$container->addDefinition($this->prefix('requestFactory'))
+			->setClass('Nette\Application\UI\RequestFactory');
 	}
 
 
