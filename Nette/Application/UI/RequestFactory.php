@@ -35,6 +35,16 @@ class RequestFactory extends Nette\Object
 	}
 
 
+	/**
+	 * Create application request.
+	 *
+	 * @param string $destination
+	 * @param array $args
+	 * @param PresenterComponent $context Component relative to which the request will be created. Affects handling of the $destination param.
+	 * @param string $mode link|forward|redirect
+	 * @return Application\Request Created application requests.
+	 * @throws InvalidLinkException
+	 */
 	public function createRequest($destination, array $args, PresenterComponent $context = NULL, $mode = 'link')
 	{
 		if ($context !== NULL) {
@@ -51,7 +61,7 @@ class RequestFactory extends Nette\Object
 			$destination = substr($destination, 0, $a);
 		}
 
-		// 4) signal or empty
+		// signal or empty
 		if (!$context instanceof Presenter || substr($destination, -1) === '!') {
 			if ($context === NULL) {
 				throw new InvalidLinkException('Context of request must be specified when using signals.');
