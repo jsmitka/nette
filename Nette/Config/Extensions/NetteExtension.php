@@ -227,6 +227,9 @@ class NetteExtension extends Nette\Config\CompilerExtension
 
 		$container->addDefinition($this->prefix('requestFactory'))
 			->setClass('Nette\Application\UI\RequestFactory');
+
+		$container->addDefinition($this->prefix('linkGenerator'))
+			->setClass('Nette\Application\UI\LinkGenerator');
 	}
 
 

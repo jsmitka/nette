@@ -114,8 +114,8 @@ abstract class Presenter extends Control implements Application\IPresenter
 	/** @var Nette\Application\Application */
 	private $application;
 
-	/** @var RequestFactory */
-	private $requestFactory;
+	/** @var LinkGenerator */
+	private $linkGenerator;
 
 	/** @var Nette\Http\Context */
 	private $httpContext;
@@ -821,62 +821,18 @@ abstract class Presenter extends Control implements Application\IPresenter
 	{
 		// note: createRequest supposes that saveState(), run() & tryCall() behaviour is final
 
-		// cached services for better performance
-		static $router, $refUrl;
-		if ($router === NULL) {
-			$router = $this->getApplication()->getRouter();
-			$refUrl = new Http\Url($this->getHttpRequest()->getUrl());
-			$refUrl->setPath($this->getHttpRequest()->getUrl()->getScriptPath());
-		}
-
 		$this->lastCreatedRequest = $this->lastCreatedRequestFlag = NULL;
 
-		// PARSE DESTINATION
-		// 1) fragment
-		$a = strpos($destination, '#');
-		if ($a === FALSE) {
-			$fragment = '';
-		} else {
-			$fragment = substr($destination, $a);
-			$destination = substr($destination, 0, $a);
-		}
+		$url = $this->linkGenerator->createLink($destination, $args, $component, $mode, $this->absoluteUrls);
 
-		// 3) URL scheme
-		$a = strpos($destination, '//');
-		if ($a === FALSE) {
-			$scheme = FALSE;
-		} else {
-			$scheme = substr($destination, 0, $a);
-			$destination = substr($destination, $a + 2);
-		}
-
-		$this->lastCreatedRequest = $this->requestFactory->createRequest($destination, $args, $component, $mode);
+		$this->lastCreatedRequest = $this->linkGenerator->getLastCreatedRequest();
 		$this->lastCreatedRequestFlag = array('current' => $this->lastCreatedRequest->isCurrent());
 
-		if ($mode === 'forward' || $mode === 'test') {
-			return;
-		}
-
-		// CONSTRUCT URL
-		$url = $router->constructUrl($this->lastCreatedRequest, $refUrl);
 		if ($url === NULL) {
-			unset($args[self::ACTION_KEY]);
-			$params = urldecode(http_build_query($args, NULL, ', '));
-			$presenter = $this->lastCreatedRequest->getPresenterName();
-			$requestArgs = $this->lastCreatedRequest->getParameters();
-			$action = $requestArgs[self::ACTION_KEY];
-			throw new InvalidLinkException("No route for $presenter:$action($params)");
+			return NULL;
 		}
 
-		// make URL relative if possible
-		if ($mode === 'link' && $scheme === FALSE && !$this->absoluteUrls) {
-			$hostUrl = $refUrl->getHostUrl();
-			if (strncmp($url, $hostUrl, strlen($hostUrl)) === 0) {
-				$url = substr($url, strlen($hostUrl));
-			}
-		}
-
-		return $url . $fragment;
+		return $url;
 	}
 
 
@@ -1157,7 +1113,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 
 
 
-	final public function injectPrimary(Nette\DI\Container $context, Application\Application $application, Http\Context $httpContext, Http\IRequest $httpRequest, Http\IResponse $httpResponse, Http\Session $session, Nette\Security\User $user, RequestFactory $requestFactory)
+	final public function injectPrimary(Nette\DI\Container $context, Application\Application $application, Http\Context $httpContext, Http\IRequest $httpRequest, Http\IResponse $httpResponse, Http\Session $session, Nette\Security\User $user, LinkGenerator $linkGenerator)
 	{
 		if ($this->application !== NULL) {
 			throw new Nette\InvalidStateException("Method " . __METHOD__ . " is intended for initialization and should not be called more than once.");
@@ -1165,7 +1121,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 
 		$this->context = $context;
 		$this->application = $application;
-		$this->requestFactory = $requestFactory;
+		$this->linkGenerator = $linkGenerator;
 		$this->httpContext = $httpContext;
 		$this->httpRequest = $httpRequest;
 		$this->httpResponse = $httpResponse;

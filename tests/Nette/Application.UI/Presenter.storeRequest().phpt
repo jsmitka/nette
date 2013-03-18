@@ -46,7 +46,7 @@ class MockSessionSection extends Nette\Object implements \ArrayAccess
 	public function __isset($name)
 	{
 		$this->testedKeyExistence = $name;
-		return false;
+		return FALSE;
 	}
 
 	public function __set($name, $value)
@@ -100,7 +100,7 @@ class MockHttpRequest extends Http\Request
 	public function __construct() {}
 }
 
-class MockRequestFactory extends Application\UI\RequestFactory
+class MockLinkGenerator extends Application\UI\LinkGenerator
 {
 	public function __construct() {}
 }
@@ -108,7 +108,7 @@ class MockRequestFactory extends Application\UI\RequestFactory
 
 $context = new DI\Container();
 $application = new MockApplication();
-$requestFactory = new MockRequestFactory();
+$linkGenerator = new MockLinkGenerator();
 $httpContext = new MockHttpContext();
 $httpRequest = new MockHttpRequest();
 $httpResponse = new Http\Response();
@@ -118,7 +118,7 @@ $user = new MockUser();
 $applicationRequest = new Application\Request('', '', array());
 
 $presenter = new TestPresenter();
-$presenter->injectPrimary($context, $application, $httpContext, $httpRequest, $httpResponse, $session, $user, $requestFactory);
+$presenter->injectPrimary($context, $application, $httpContext, $httpRequest, $httpResponse, $session, $user, $linkGenerator);
 $presenter->run($applicationRequest);
 
 $expiration = '+1 year';
