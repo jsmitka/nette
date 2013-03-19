@@ -62,7 +62,7 @@ class RequestFactory extends Nette\Object
 		}
 
 		// signal or empty
-		if (!$context instanceof Presenter || substr($destination, -1) === '!') {
+		if (($context !== NULL && !$context instanceof Presenter) || substr($destination, -1) === '!') {
 			if ($context === NULL) {
 				throw new InvalidLinkException('Context of request must be specified when using signals.');
 			}
