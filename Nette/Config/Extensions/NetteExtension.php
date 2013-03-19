@@ -13,6 +13,7 @@ namespace Nette\Config\Extensions;
 
 use Nette,
 	Nette\DI\ContainerBuilder,
+	Nette\Http,
 	Nette\Utils\Validators;
 
 
@@ -35,7 +36,8 @@ class NetteExtension extends Nette\Config\CompilerExtension
 			'debugger' => TRUE,
 			'errorPresenter' => NULL,
 			'catchExceptions' => '%productionMode%',
-			'mapping' => NULL
+			'mapping' => NULL,
+			'fallbackRefUrl' => FALSE
 		),
 		'routing' => array(
 			'debugger' => TRUE,
@@ -228,8 +230,27 @@ class NetteExtension extends Nette\Config\CompilerExtension
 		$container->addDefinition($this->prefix('requestFactory'))
 			->setClass('Nette\Application\UI\RequestFactory');
 
+		$container->addDefinition($this->prefix('refUrl'))
+			->setFactory('Nette\Config\Extensions\NetteExtension::createRefUrl')
+			->setArguments(array($config['fallbackRefUrl']))
+			->setShared(FALSE);
+
 		$container->addDefinition($this->prefix('linkGenerator'))
-			->setClass('Nette\Application\UI\LinkGenerator');
+			->setClass('Nette\Application\UI\LinkGenerator')
+			->setArguments(array('refUrl' => '@' . $this->prefix('refUrl')));
+	}
+
+
+
+	public static function createRefUrl($fallbackRefUrl, Http\Request $request)
+	{
+		if ($fallbackRefUrl === FALSE || isset($_SERVER['HTTP_HOST']) || isset($_SERVER['SERVER_NAME'])) {
+			$refUrl = new Http\Url($request->getUrl());
+			$refUrl->setPath($request->getUrl()->getScriptPath());
+			return $refUrl;
+		} else {
+			return new Http\Url($fallbackRefUrl);
+		}
 	}
 
 

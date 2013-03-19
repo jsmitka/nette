@@ -30,11 +30,10 @@ class LinkGenerator extends Nette\Object
 	private $lastCreatedRequest;
 
 
-	public function __construct(Application\IRouter $router, Http\Request $httpRequest, RequestFactory $requestFactory) {
+	public function __construct(Application\IRouter $router, Http\Url $refUrl, RequestFactory $requestFactory) {
 		$this->router = $router;
 		$this->requestFactory = $requestFactory;
-		$this->refUrl = new Http\Url($httpRequest->getUrl());
-		$this->refUrl->setPath($httpRequest->getUrl()->getScriptPath());
+		$this->refUrl = $refUrl;
 	}
 
 	/**
