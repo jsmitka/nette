@@ -237,7 +237,7 @@ class NetteExtension extends Nette\Config\CompilerExtension
 
 		$container->addDefinition($this->prefix('linkGenerator'))
 			->setClass('Nette\Application\UI\LinkGenerator')
-			->setArguments(array('refUrl' => '@' . $this->prefix('refUrl')));
+			->setArguments(array('refUrl' => $this->prefix('@refUrl')));
 	}
 
 
