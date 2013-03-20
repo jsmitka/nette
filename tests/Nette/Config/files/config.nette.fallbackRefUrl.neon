@@ -1,3 +1,0 @@
-nette:
-	application:
-		fallbackRefUrl: http://example.org/sub/directory/index.php

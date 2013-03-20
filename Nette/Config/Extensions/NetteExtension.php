@@ -37,7 +37,7 @@ class NetteExtension extends Nette\Config\CompilerExtension
 			'errorPresenter' => NULL,
 			'catchExceptions' => '%productionMode%',
 			'mapping' => NULL,
-			'fallbackRefUrl' => FALSE
+			'fallbackReferenceUrl' => FALSE
 		),
 		'routing' => array(
 			'debugger' => TRUE,
@@ -230,19 +230,19 @@ class NetteExtension extends Nette\Config\CompilerExtension
 		$container->addDefinition($this->prefix('requestFactory'))
 			->setClass('Nette\Application\UI\RequestFactory');
 
-		$container->addDefinition($this->prefix('refUrl'))
-			->setFactory('Nette\Config\Extensions\NetteExtension::createRefUrl')
-			->setArguments(array($config['fallbackRefUrl']))
+		$container->addDefinition($this->prefix('referenceUrl'))
+			->setFactory('Nette\Config\Extensions\NetteExtension::createReferenceUrl')
+			->setArguments(array($config['fallbackReferenceUrl']))
 			->setShared(FALSE);
 
 		$container->addDefinition($this->prefix('linkGenerator'))
 			->setClass('Nette\Application\UI\LinkGenerator')
-			->setArguments(array('refUrl' => $this->prefix('@refUrl')));
+			->setArguments(array('refUrl' => $this->prefix('@referenceUrl')));
 	}
 
 
 
-	public static function createRefUrl($fallbackRefUrl, Http\Request $request)
+	public static function createReferenceUrl($fallbackRefUrl, Http\Request $request)
 	{
 		if ($fallbackRefUrl === FALSE || isset($_SERVER['HTTP_HOST']) || isset($_SERVER['SERVER_NAME'])) {
 			$refUrl = new Http\Url($request->getUrl());

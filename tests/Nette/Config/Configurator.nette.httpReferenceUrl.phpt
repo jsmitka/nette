@@ -18,7 +18,7 @@ $_SERVER['HTTP_HOST'] = 'example.com';
 
 $configurator = new Configurator;
 $configurator->setTempDirectory(TEMP_DIR);
-$container = $configurator->addConfig('files/config.nette.fallbackRefUrl.neon')
+$container = $configurator->addConfig('files/config.nette.fallbackReferenceUrl.neon')
 	->createContainer();
 
-Assert::same('http://example.com/', (string) $container->createNette__refUrl());
+Assert::same('http://example.com/', (string) $container->createNette__referenceUrl());

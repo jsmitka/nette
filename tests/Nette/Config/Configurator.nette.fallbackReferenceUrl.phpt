@@ -17,7 +17,7 @@ require __DIR__ . '/../bootstrap.php';
 
 $configurator = new Configurator;
 $configurator->setTempDirectory(TEMP_DIR);
-$container = $configurator->addConfig('files/config.nette.fallbackRefUrl.neon')
+$container = $configurator->addConfig('files/config.nette.fallbackReferenceUrl.neon')
 	->createContainer();
 
-Assert::same('http://example.org/sub/directory/index.php', (string) $container->createNette__refUrl());
+Assert::same('http://example.org/sub/directory/index.php', (string) $container->createNette__referenceUrl());
