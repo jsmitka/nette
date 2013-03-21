@@ -45,6 +45,24 @@ class LinkGenerator extends Nette\Object
 	}
 
 
+	/**
+	 * PresenterComponent compatible link creation.
+	 * @param string $destination
+	 * @param mixed $args
+	 * @throws InvalidLinkException
+	 * @return string Generated link.
+	 */
+	public function link($destination, $args = array())
+	{
+		if (!is_array($args)) {
+			$args = func_get_args();
+			array_shift($args);
+		}
+
+		return $this->createLink($destination, $args);
+	}
+
+
 	public function createLink($destination, array $args, PresenterComponent $context = NULL, $mode = 'link', $absoluteUrl = FALSE)
 	{
 		$this->lastCreatedRequest = NULL;

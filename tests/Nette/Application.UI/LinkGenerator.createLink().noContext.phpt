@@ -18,7 +18,7 @@ require __DIR__ . '/../bootstrap.php';
 
 class TestPresenter extends Application\UI\Presenter
 {
-	public function renderFoo($id) {}
+	public function renderFoo($id, $val) {}
 }
 
 
@@ -31,10 +31,19 @@ $router = new Application\Routers\SimpleRouter();
 
 $linkGenerator = new Application\UI\LinkGenerator($router, $url, $container->getService('nette.requestFactory'));
 
+// createLink()
 Assert::same('/index.php?action=foo&presenter=Test', $linkGenerator->createLink('Test:foo', array()));
 Assert::same('/index.php?action=foo&presenter=Test', $linkGenerator->createLink(':Test:foo', array()));
 Assert::same('/index.php?id=123&action=foo&presenter=Test', $linkGenerator->createLink('Test:foo', array(123)));
+Assert::same('/index.php?id=123&val=abc&action=foo&presenter=Test', $linkGenerator->createLink('Test:foo', array(123, 'abc')));
 
+// link()
+Assert::same('/index.php?action=foo&presenter=Test', $linkGenerator->link('Test:foo'));
+Assert::same('/index.php?action=foo&presenter=Test', $linkGenerator->link(':Test:foo'));
+Assert::same('/index.php?id=123&action=foo&presenter=Test', $linkGenerator->link('Test:foo', 123));
+Assert::same('/index.php?id=123&val=abc&action=foo&presenter=Test', $linkGenerator->link('Test:foo', 123, 'abc'));
+
+// errors
 Assert::exception(function () use ($linkGenerator) {
 	$linkGenerator->createLink('this', array());
 }, 'Nette\Application\UI\InvalidLinkException');
