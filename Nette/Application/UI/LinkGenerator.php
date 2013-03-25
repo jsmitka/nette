@@ -15,7 +15,7 @@ use Nette,
 	Nette\Application,
 	Nette\Http;
 
-class LinkGenerator extends Nette\Object
+class LinkGenerator extends Nette\Object implements Application\ILinkGenerator
 {
 	/** @var Application\IRouter */
 	private $router;

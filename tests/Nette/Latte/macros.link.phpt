@@ -7,7 +7,8 @@
  * @package    Nette\Latte
  */
 
-use Nette\Latte;
+use Nette\Latte,
+	Nette\Templating;
 
 
 
@@ -15,7 +16,7 @@ require __DIR__ . '/../bootstrap.php';
 
 
 
-class MockControl
+class MockControl implements Nette\Application\ILinkGenerator
 {
 
 	public function link($destination, $args = array())
@@ -53,11 +54,15 @@ class MockPresenter extends MockControl
 
 
 
+$control = new MockControl;
+$presenter = new MockPresenter;
+
 $template = new Nette\Templating\Template;
 $template->registerFilter(new Latte\Engine);
 
-$template->_control = new MockControl;
-$template->_presenter = new MockPresenter;
+$linkHelper = new Templating\LinkHelper($control, $presenter);
+$linkHelper->register($template);
+
 $template->action = 'login';
 $template->arr = array('link' => 'login', 'param' => 123);
 

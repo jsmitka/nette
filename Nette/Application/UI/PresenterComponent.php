@@ -27,7 +27,7 @@ use Nette;
  * @property-read Presenter $presenter
  * @property-read string $uniqueId
  */
-abstract class PresenterComponent extends Nette\ComponentModel\Container implements ISignalReceiver, IStatePersistent, \ArrayAccess
+abstract class PresenterComponent extends Nette\ComponentModel\Container implements ISignalReceiver, IStatePersistent, \ArrayAccess, Nette\Application\ILinkGenerator
 {
 	/** @var array */
 	protected $params = array();

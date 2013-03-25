@@ -39,12 +39,6 @@ class UIMacros extends MacroSet
 	/** @var bool */
 	private $extends;
 
-	/** @var bool */
-	private $usedLink;
-
-	/** @var bool */
-	private $usedPlink;
-
 
 
 	public static function install(Latte\Compiler $compiler)
@@ -84,8 +78,6 @@ class UIMacros extends MacroSet
 	{
 		$this->namedBlocks = array();
 		$this->extends = NULL;
-		$this->usedLink = FALSE;
-		$this->usedPlink = FALSE;
 	}
 
 
@@ -138,20 +130,6 @@ if ($_l->extends) {
 if (!empty($_control->snippetMode)) {
 	return Nette\Latte\Macros\UIMacros::renderSnippets($_control, $_l, get_defined_vars());
 }';
-		}
-
-		if ($this->usedLink == TRUE) {
-			$prolog[] = '
-// link control
-$_linkControl = isset($_control) ? $_control : (isset($_linkGenerator) ? $_linkGenerator : NULL);
-if ($_linkControl === NULL) unset($_linkControl);';
-		}
-
-		if ($this->usedPlink == TRUE) {
-			$prolog[] = '
-// plink control
-$_plinkControl = isset($_presenter) ? $_presenter : (isset($_linkGenerator) ? $_linkGenerator : NULL);
-if ($_plinkControl === NULL) unset($_plinkControl);';
 		}
 
 		return array(implode("\n\n", $prolog), implode("\n", $epilog));
@@ -409,12 +387,7 @@ if ($_plinkControl === NULL) unset($_plinkControl);';
 	 */
 	public function macroLink(MacroNode $node, PhpWriter $writer)
 	{
-		if ($node->name === 'plink') {
-			$this->usedPlink = TRUE;
-		} else {
-			$this->usedLink = TRUE;
-		}
-		return $writer->write('echo %escape(%modify(' . ($node->name === 'plink' ? '$_plinkControl' : '$_linkControl') . '->link(%node.word, %node.array?)))');
+		return $writer->write('echo %escape(%modify($template->' . ($node->name === 'plink' ? '_plink' : '_link') . '(%node.word, %node.array?)))');
 	}
 
 

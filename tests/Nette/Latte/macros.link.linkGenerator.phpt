@@ -8,7 +8,8 @@
  */
 
 use Nette\Latte,
-	Nette\Application;
+	Nette\Application,
+	Nette\Templating;
 
 
 
@@ -33,11 +34,13 @@ class MockLinkGenerator extends Application\UI\LinkGenerator
 }
 
 
+$linkGenerator = new MockLinkGenerator();
 
-$template = new Nette\Templating\Template;
+$template = new Templating\Template;
 $template->registerFilter(new Latte\Engine);
 
-$template->_linkGenerator = new MockLinkGenerator();
+$linkHelper = new Templating\LinkHelper($linkGenerator);
+$linkHelper->register($template);
 
 $template->action = 'login';
 $template->arr = array('link' => 'login', 'param' => 123);
