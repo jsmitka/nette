@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application;
@@ -14,21 +10,20 @@ namespace Nette\Application;
 use Nette;
 
 
-
 /**
  * Default presenter loader.
  *
  * @author     David Grudl
  */
-class PresenterFactory implements IPresenterFactory
+class PresenterFactory extends Nette\Object implements IPresenterFactory
 {
 	/** @var bool */
 	public $caseSensitive = FALSE;
 
-	/** @var string[] of module => mask */
-	public $mapping = array(
-		'*' => '\*Module\*Presenter',
-		'Nette' => 'NetteModule\*\*Presenter',
+	/** @var array[] of module => splited mask */
+	private $mapping = array(
+		'*' => array('', '*Module\\', '*Presenter'),
+		'Nette' => array('NetteModule\\', '*\\', '*Presenter'),
 	);
 
 	/** @var string */
@@ -41,7 +36,6 @@ class PresenterFactory implements IPresenterFactory
 	private $container;
 
 
-
 	/**
 	 * @param  string
 	 */
@@ -52,16 +46,20 @@ class PresenterFactory implements IPresenterFactory
 	}
 
 
-
 	/**
-	 * Create new presenter instance.
+	 * Creates new presenter instance.
 	 * @param  string  presenter name
 	 * @return IPresenter
 	 */
 	public function createPresenter($name)
 	{
-		$presenter = $this->container->createInstance($this->getPresenterClass($name));
-		$this->container->callInjects($presenter);
+		$class = $this->getPresenterClass($name);
+		if (count($services = $this->container->findByType($class)) === 1) {
+			$presenter = $this->container->createService($services[0]);
+		} else {
+			$presenter = $this->container->createInstance($class);
+			$this->container->callInjects($presenter);
+		}
 
 		if ($presenter instanceof UI\Presenter && $presenter->invalidLinkMode === NULL) {
 			$presenter->invalidLinkMode = $this->container->parameters['debugMode'] ? UI\Presenter::INVALID_LINK_WARNING : UI\Presenter::INVALID_LINK_SILENT;
@@ -70,8 +68,8 @@ class PresenterFactory implements IPresenterFactory
 	}
 
 
-
 	/**
+	 * Generates and checks presenter class name.
 	 * @param  string  presenter name
 	 * @return string  class name
 	 * @throws InvalidPresenterException
@@ -93,7 +91,7 @@ class PresenterFactory implements IPresenterFactory
 			// internal autoloading
 			$file = $this->formatPresenterFile($name);
 			if (is_file($file) && is_readable($file)) {
-				Nette\Utils\LimitedScope::load($file, TRUE);
+				call_user_func(function() use ($file) { require $file; });
 			}
 
 			if (!class_exists($class)) {
@@ -129,6 +127,21 @@ class PresenterFactory implements IPresenterFactory
 	}
 
 
+	/**
+	 * Sets mapping as pairs [module => mask]
+	 * @return self
+	 */
+	public function setMapping(array $mapping)
+	{
+		foreach ($mapping as $module => $mask) {
+			if (!preg_match('#^\\\\?([\w\\\\]*\\\\)?(\w*\*\w*?\\\\)?([\w\\\\]*\*\w*)\z#', $mask, $m)) {
+				throw new Nette\InvalidStateException("Invalid mapping mask '$mask'.");
+			}
+			$this->mapping[$module] = array($m[1], $m[2] ?: '*Module\\', $m[3]);
+		}
+		return $this;
+	}
+
 
 	/**
 	 * Formats presenter class name from its name.
@@ -137,18 +150,16 @@ class PresenterFactory implements IPresenterFactory
 	 */
 	public function formatPresenterClass($presenter)
 	{
-		/*5.2*return strtr($presenter, ':', '_') . 'Presenter';*/
 		$parts = explode(':', $presenter);
-		$mapping = explode('\\*', isset($parts[1], $this->mapping[$parts[0]])
+		$mapping = isset($parts[1], $this->mapping[$parts[0]])
 			? $this->mapping[array_shift($parts)]
-			: $this->mapping['*']);
-		$class = $mapping[0];
-		while ($part = array_shift($parts)) {
-			$class .= ($class ? '\\' : '') . $part . $mapping[$parts ? 1 : 2];
-		}
-		return $class;
-	}
+			: $this->mapping['*'];
 
+		while ($part = array_shift($parts)) {
+			$mapping[0] .= str_replace('*', $part, $mapping[$parts ? 1 : 2]);
+		}
+		return $mapping[0];
+	}
 
 
 	/**
@@ -158,17 +169,14 @@ class PresenterFactory implements IPresenterFactory
 	 */
 	public function unformatPresenterClass($class)
 	{
-		/*5.2*return strtr(substr($class, 0, -9), '_', ':');*/
 		foreach ($this->mapping as $module => $mapping) {
-			$mapping = explode('\\\\\*', preg_quote($mapping, '#'));
-			$mapping[0] .= $mapping[0] ? '\\\\' : '';
-			if (preg_match("#^\\\\?$mapping[0]((?:\\w+$mapping[1]\\\\)*)(\\w+)$mapping[2]\\z#i", $class, $matches)) {
+			$mapping = str_replace(array('\\', '*'), array('\\\\', '(\w+)'), $mapping);
+			if (preg_match("#^\\\\?$mapping[0]((?:$mapping[1])*)$mapping[2]\\z#i", $class, $matches)) {
 				return ($module === '*' ? '' : $module . ':')
-					. str_replace($mapping[1] . '\\', ':', $matches[1]) . $matches[2];
+					. preg_replace("#$mapping[1]#iA", '$1:', $matches[1]) . $matches[3];
 			}
 		}
 	}
-
 
 
 	/**

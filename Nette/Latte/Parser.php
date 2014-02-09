@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Latte;
 
 use Nette,
 	Nette\Utils\Strings;
-
 
 
 /**
@@ -31,6 +26,9 @@ class Parser extends Nette\Object
 
 	/** @var string default macro tag syntax */
 	public $defaultSyntax = 'latte';
+
+	/** @var bool */
+	public $shortNoEscape = FALSE;
 
 	/** @var array */
 	public $syntaxes = array(
@@ -74,7 +72,6 @@ class Parser extends Nette\Object
 		CONTEXT_HTML_COMMENT = 'htmlComment';
 
 
-
 	/**
 	 * Process all {macros} and <tags/>.
 	 * @param  string
@@ -108,7 +105,7 @@ class Parser extends Nette\Object
 
 			} elseif (!empty($matches['macro'])) { // {macro}
 				$token = $this->addToken(Token::MACRO_TAG, $matches[0]);
-				list($token->name, $token->value, $token->modifiers) = $this->parseMacroTag($matches['macro']);
+				list($token->name, $token->value, $token->modifiers, $token->empty) = $this->parseMacroTag($matches['macro']);
 			}
 
 			$this->filter();
@@ -119,7 +116,6 @@ class Parser extends Nette\Object
 		}
 		return $this->output;
 	}
-
 
 
 	/**
@@ -148,7 +144,6 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Handles CONTEXT_CDATA.
 	 */
@@ -170,7 +165,6 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Handles CONTEXT_HTML_TAG.
 	 */
@@ -179,7 +173,7 @@ class Parser extends Nette\Object
 		$matches = $this->match('~
 			(?P<end>\ ?/?>)([ \t]*\n)?|  ##  end of HTML tag
 			'.$this->macroRe.'|          ##  macro tag
-			\s*(?P<attr>[^\s/>={]+)(?:\s*=\s*(?P<value>["\']|[^\s/>{]+))? ## begin of HTML attribute
+			\s*(?P<attr>[^\s/>={]+)(?:\s*=\s*(?P<value>["\']|[^\s/>{]+))? ## beginning of HTML attribute
 		~xsi');
 
 		if (!empty($matches['end'])) { // end of HTML tag />
@@ -207,7 +201,6 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Handles CONTEXT_HTML_ATTRIBUTE.
 	 */
@@ -224,7 +217,6 @@ class Parser extends Nette\Object
 		}
 		return $matches;
 	}
-
 
 
 	/**
@@ -245,7 +237,6 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Handles CONTEXT_RAW.
 	 */
@@ -256,7 +247,6 @@ class Parser extends Nette\Object
 		~xsi');
 		return $matches;
 	}
-
 
 
 	/**
@@ -272,15 +262,16 @@ class Parser extends Nette\Object
 				$this->addToken(Token::TEXT, $value);
 			}
 			$this->offset = $matches[0][1] + strlen($matches[0][0]);
-			foreach ($matches as $k => $v) $matches[$k] = $v[0];
+			foreach ($matches as $k => $v) {
+				$matches[$k] = $v[0];
+			}
 		}
 		return $matches;
 	}
 
 
-
 	/**
-	 * @return Parser  provides a fluent interface
+	 * @return self
 	 */
 	public function setContext($context, $quote = NULL)
 	{
@@ -289,11 +280,10 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Changes macro tag delimiters.
 	 * @param  string
-	 * @return Parser  provides a fluent interface
+	 * @return self
 	 */
 	public function setSyntax($type)
 	{
@@ -307,12 +297,11 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Changes macro tag delimiters.
 	 * @param  string  left regular expression
 	 * @param  string  right regular expression
-	 * @return Parser  provides a fluent interface
+	 * @return self
 	 */
 	public function setDelimiters($left, $right)
 	{
@@ -329,7 +318,6 @@ class Parser extends Nette\Object
 	}
 
 
-
 	/**
 	 * Parses macro tag to name, arguments a modifiers parts.
 	 * @param  string {name arguments | modifiers}
@@ -343,6 +331,7 @@ class Parser extends Nette\Object
 				(?P<noescape>!?)(?P<shortname>/?[=\~#%^&_]?)      ## !expression, !=expression, ...
 			)(?P<args>.*?)
 			(?P<modifiers>\|[a-z](?:'.Parser::RE_STRING.'|[^\'"])*)?
+			(?P<empty>/?\z)
 		()\z~isx');
 
 		if (!$match) {
@@ -350,13 +339,15 @@ class Parser extends Nette\Object
 		}
 		if ($match['name'] === '') {
 			$match['name'] = $match['shortname'] ?: '=';
-			if (!$match['noescape'] && substr($match['shortname'], 0, 1) !== '/' && $match['shortname'] !== '#') { // workaround for #block
-				$match['modifiers'] .= '|escape';
+			if ($match['noescape']) {
+				if (!$this->shortNoEscape) {
+					trigger_error("The noescape shortcut {!...} is deprecated, use {...|noescape} modifier on line {$this->getLine()}.", E_USER_DEPRECATED);
+				}
+				$match['modifiers'] .= '|noescape';
 			}
 		}
-		return array($match['name'], trim($match['args']), $match['modifiers']);
+		return array($match['name'], trim($match['args']), $match['modifiers'], (bool) $match['empty']);
 	}
-
 
 
 	private function addToken($type, $text)
@@ -364,10 +355,15 @@ class Parser extends Nette\Object
 		$this->output[] = $token = new Token;
 		$token->type = $type;
 		$token->text = $text;
-		$token->line = substr_count($this->input, "\n", 0, max(1, $this->offset - 1)) + 1;
+		$token->line = $this->getLine();
 		return $token;
 	}
 
+
+	private function getLine()
+	{
+		return substr_count($this->input, "\n", 0, max(1, $this->offset - 1)) + 1;
+	}
 
 
 	/**

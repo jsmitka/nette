@@ -4,22 +4,16 @@
  * Test: Nette\Diagnostics\Debugger E_ERROR in console.
  *
  * @author     David Grudl
- * @package    Nette\Diagnostics
- * @subpackage UnitTests
  */
 
-use Nette\Diagnostics\Debugger;
-
-
+use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
 
+$blueScreen = new Nette\Diagnostics\BlueScreen;
 
-Debugger::$consoleMode = TRUE;
-Debugger::$productionMode = FALSE;
+$blueScreen->collapsePaths[] = __DIR__;
 
-Debugger::$blueScreen->collapsePaths[] = __DIR__;
-
-Assert::true(Debugger::$blueScreen->isCollapsed(__FILE__));
-Assert::false(Debugger::$blueScreen->isCollapsed(dirname(__DIR__) . 'somethingElse'));
+Assert::true($blueScreen->isCollapsed(__FILE__));
+Assert::false($blueScreen->isCollapsed(dirname(__DIR__) . 'somethingElse'));

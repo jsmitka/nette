@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\Routers;
 
 use Nette;
-
 
 
 /**
@@ -30,12 +25,10 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 	private $module;
 
 
-
 	public function __construct($module = NULL)
 	{
 		$this->module = $module ? $module . ':' : '';
 	}
-
 
 
 	/**
@@ -47,13 +40,15 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 		foreach ($this as $route) {
 			$appRequest = $route->match($httpRequest);
 			if ($appRequest !== NULL) {
-				$appRequest->setPresenterName($this->module . $appRequest->getPresenterName());
+				$name = $appRequest->getPresenterName();
+				if (strncmp($name, 'Nette:', 6)) {
+					$appRequest->setPresenterName($this->module . $name);
+				}
 				return $appRequest;
 			}
 		}
 		return NULL;
 	}
-
 
 
 	/**
@@ -115,7 +110,6 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 	}
 
 
-
 	/**
 	 * Adds the router.
 	 * @param  mixed
@@ -129,7 +123,6 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 		}
 		parent::offsetSet($index, $route);
 	}
-
 
 
 	/**

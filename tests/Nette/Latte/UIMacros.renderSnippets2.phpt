@@ -4,15 +4,13 @@
  * Test: Nette\Latte\Macros\UIMacros, renderSnippets and control with two templates.
  *
  * @author     Jan Skrasek
- * @package    Nette\Latte
  */
 
-use Nette\Latte;
-
+use Nette\Latte,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class InnerControl extends Nette\Application\UI\Control
@@ -22,6 +20,7 @@ class InnerControl extends Nette\Application\UI\Control
 		$this->renderA();
 		$this->renderB();
 	}
+
 	public function renderA()
 	{
 		$template = new Nette\Templating\Template;
@@ -32,6 +31,7 @@ class InnerControl extends Nette\Application\UI\Control
 		$template->setSource('{snippet testA}{$say}{/snippet}');
 		$template->render();
 	}
+
 	public function renderB()
 	{
 		$template = new Nette\Templating\Template;
@@ -48,20 +48,24 @@ class InnerControl extends Nette\Application\UI\Control
 class TestPresenter extends Nette\Application\UI\Presenter
 {
 	private $payload;
+
+	function __construct()
+	{
+		$this->payload = new stdClass;
+	}
+
 	function getPayload()
 	{
 		return $this->payload;
 	}
-	function emptyPayload()
-	{
-		$this->payload = new stdClass;
-	}
+
 	function createComponentMulti()
 	{
 		return new Nette\Application\UI\Multiplier(function() {
 			return new InnerControl();
 		});
 	}
+
 	public function render()
 	{
 		$template = new Nette\Templating\Template;
@@ -72,19 +76,13 @@ class TestPresenter extends Nette\Application\UI\Presenter
 }
 
 
-$control = new TestPresenter(new Nette\DI\Container(array(
-	'productionMode' => true,
-)));
-$control->snippetMode = true;
-
-
-
-$control->emptyPayload();
-$control['multi-1']->invalidateControl();
-$control->render();
-Assert::equal((object) array(
+$presenter = new TestPresenter;
+$presenter->snippetMode = TRUE;
+$presenter['multi-1']->redrawControl();
+$presenter->render();
+Assert::same(array(
 	'snippets' => array(
 		'snippet-multi-1-testA' => 'Hello',
 		'snippet-multi-1-testB' => 'world',
-   ),
-), $control->payload);
+	),
+), (array) $presenter->payload);

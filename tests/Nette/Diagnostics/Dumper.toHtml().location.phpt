@@ -4,15 +4,13 @@
  * Test: Nette\Diagnostics\Dumper::toHtml() with location
  *
  * @author     David Grudl
- * @package    Nette\Diagnostics
  */
 
-use Nette\Diagnostics\Dumper;
-
+use Nette\Diagnostics\Dumper,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::match( '<pre class="nette-dump" title="Dumper::toHtml( trim(&quot; Hello &quot;), array(&quot;location&quot; =&gt; TRUE) ) )

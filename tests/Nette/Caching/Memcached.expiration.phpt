@@ -4,22 +4,19 @@
  * Test: Nette\Caching\Storages\MemcachedStorage expiration test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Storages\MemcachedStorage,
-	Nette\Caching\Cache;
-
+	Nette\Caching\Cache,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-
 if (!MemcachedStorage::isAvailable()) {
-	Tester\Helpers::skip('Requires PHP extension Memcache.');
+	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
-
 
 
 $key = 'nette-expiration-key';
@@ -36,10 +33,9 @@ $cache->save($key, $value, array(
 
 // Sleeping 1 second
 sleep(1);
-Assert::true( isset($cache[$key]), 'Is cached?' );
-
+Assert::true( isset($cache[$key]) );
 
 
 // Sleeping 3 seconds
 sleep(3);
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );

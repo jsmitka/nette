@@ -4,17 +4,15 @@
  * Test: Nette\Application\Routers\Route with WithNamedParamsInQuery
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
-use Nette\Application\Routers\Route;
-
+use Nette\Application\Routers\Route,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 require __DIR__ . '/Route.inc';
-
 
 
 $route = new Route('?action=<presenter> & act=<action [a-z]+>', array(
@@ -31,3 +29,5 @@ testRouteIn($route, '/?act=default', 'Default', array(
 	'action' => 'default',
 	'test' => 'testvalue',
 ), '/?test=testvalue');
+
+testRouteIn($route, '/?action[]=invalid&act=default', NULL);

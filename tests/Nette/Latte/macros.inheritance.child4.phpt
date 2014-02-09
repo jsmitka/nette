@@ -4,17 +4,14 @@
  * Test: Nette\Latte\Engine: {extends ...} test IV.
  *
  * @author     David Grudl
- * @package    Nette\Latte
- * @keepTrailingSpaces
  */
 
 use Nette\Latte,
-	Nette\Templating\FileTemplate;
-
+	Nette\Templating\FileTemplate,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $template = new FileTemplate;

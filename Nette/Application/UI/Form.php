@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\UI;
 
 use Nette;
-
 
 
 /**
@@ -38,7 +33,6 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	}
 
 
-
 	/**
 	 * Returns the presenter where this component belongs to.
 	 * @param  bool   throw exception if presenter doesn't exist?
@@ -48,7 +42,6 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	{
 		return $this->lookup('Nette\Application\UI\Presenter', $need);
 	}
-
 
 
 	/**
@@ -66,24 +59,24 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 				$this->getElementPrototype()->id = 'frm-' . $name;
 			}
 
-			$this->setAction(new Link(
-				$presenter,
-				$name . self::NAME_SEPARATOR . 'submit!',
-				array()
-			));
+			if (!$this->getAction()) {
+				$this->setAction(new Link($presenter, 'this', array()));
+			}
 
-			// fill-in the form with HTTP data
-			if ($this->isSubmitted()) {
+			if (iterator_count($this->getControls()) && $this->isSubmitted()) {
 				foreach ($this->getControls() as $control) {
 					if (!$control->isDisabled()) {
 						$control->loadHttpData();
 					}
 				}
 			}
+
+			$signal = new Nette\Forms\Controls\HiddenField($name . self::NAME_SEPARATOR . 'submit');
+			$signal->setOmitted()->setHtmlId(FALSE);
+			$this[Presenter::SIGNAL_KEY] = $signal;
 		}
 		parent::attached($presenter);
 	}
-
 
 
 	/**
@@ -96,10 +89,9 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	}
 
 
-
 	/**
-	 * Internal: receives submitted HTTP data.
-	 * @return array
+	 * Internal: returns submitted HTTP data or NULL when form was not submitted.
+	 * @return array|NULL
 	 */
 	protected function receiveHttpData()
 	{
@@ -122,9 +114,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	}
 
 
-
 	/********************* interface ISignalReceiver ****************d*g**/
-
 
 
 	/**

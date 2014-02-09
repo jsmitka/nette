@@ -4,15 +4,13 @@
  * Test: Nette\Latte\Engine: {link ...}, {plink ...}
  *
  * @author     David Grudl
- * @package    Nette\Latte
  */
 
-use Nette\Latte;
-
+use Nette\Latte,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class MockControl
@@ -21,15 +19,13 @@ class MockControl
 	public function link($destination, $args = array())
 	{
 		if (!is_array($args)) {
-			$args = func_get_args();
-			array_shift($args);
+			$args = array_slice(func_get_args(), 1);
 		}
 		array_unshift($args, $destination);
-		return 'LINK(' . implode(', ', $args) . ')';
+		return 'link:' . strtr(json_encode($args), '"', "'");
 	}
 
 }
-
 
 
 class MockPresenter extends MockControl
@@ -38,11 +34,10 @@ class MockPresenter extends MockControl
 	public function link($destination, $args = array())
 	{
 		if (!is_array($args)) {
-			$args = func_get_args();
-			array_shift($args);
+			$args = array_slice(func_get_args(), 1);
 		}
 		array_unshift($args, $destination);
-		return 'PLINK(' . implode(', ', $args) . ')';
+		return 'plink:' . strtr(json_encode($args), '"', "'");
 	}
 
 	public function isAjax() {
@@ -50,7 +45,6 @@ class MockPresenter extends MockControl
 	}
 
 }
-
 
 
 $template = new Nette\Templating\Template;
@@ -62,25 +56,35 @@ $template->action = 'login';
 $template->arr = array('link' => 'login', 'param' => 123);
 
 Assert::match(<<<EOD
-PLINK(Homepage:)
+plink:['Homepage:']
 
-PLINK(Homepage:)
+plink:['Homepage:']
 
-PLINK(Homepage:action)
+plink:['Homepage:action']
 
-PLINK(Homepage:action)
+plink:['Homepage:action']
 
-PLINK(Homepage:action, 10, 20, {one}&amp;two)
+plink:['Homepage:action',10,20,'{one}&amp;two']
 
-PLINK(:, 10)
+plink:['Homepage:action#hash',10,20,'{one}&amp;two']
 
-PLINK(default, 10, 20, 30)
+plink:['#hash']
 
-LINK(login)
+plink:[':',10]
 
-PLINK(login, 123)
+plink:{'0':'default','1':10,'a':20,'b':30}
 
-LINK(default, 10, 20, 30)
+link:['login']
+
+<a href="plink:['login',123]"></a>
+
+<a href="link:{'0':'default!','1':10,'a':20,'b':30}"></a>
+
+<a href="link:['Homepage:']"></a>
+
+<a href="link:{'0':'default!','1':10,'a':20,'b':30}"></a>
+
+<a href="link:['default!#hash',10,20]"></a>
 EOD
 
 , (string) $template->setSource(<<<EOD
@@ -94,14 +98,24 @@ EOD
 
 {plink Homepage:action 10, 20, '{one}&two'}
 
+{plink Homepage:action#hash 10, 20, '{one}&two'}
+
+{plink #hash}
+
 {plink : 10 }
 
 {plink default 10, 'a' => 20, 'b' => 30}
 
 {link  \$action}
 
-{plink \$arr['link'], \$arr['param']}
+<a href="{plink \$arr['link'], \$arr['param']}"></a>
 
-{link default 10, 'a' => 20, 'b' => 30}
+<a href="{link default! 10, 'a' => 20, 'b' => 30}"></a>
+
+<a n:href="Homepage:"></a>
+
+<a n:href="default! 10, 'a' => 20, 'b' => 30"></a>
+
+<a n:href="default!#hash 10, 20"></a>
 EOD
 ));

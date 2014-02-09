@@ -4,16 +4,14 @@
  * Test: Nette\Caching\Storages\FileStorage derive test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Cache,
-	Nette\Caching\Storages\FileStorage;
-
+	Nette\Caching\Storages\FileStorage,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $key = 'nette';

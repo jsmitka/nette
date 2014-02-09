@@ -4,15 +4,13 @@
  * Test: Nette\Callback tests.
  *
  * @author     David Grudl
- * @package    Nette
  */
 
-use Nette\Callback;
-
+use Nette\Callback,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class Test
@@ -24,17 +22,22 @@ class Test
 }
 
 
-$cb = new Callback(array(new Test, 'add'));
+test(function() {
+	$cb = new Callback(array(new Test, 'add'));
 
-Assert::same( 8, $cb/*5.2*->invoke*/(3, 5) );
-Assert::same( 8, $cb->invokeArgs(array(3, 5)) );
-Assert::true( $cb->isCallable() );
+	Assert::same( 8, $cb(3, 5) );
+	Assert::same( 8, $cb->invoke(3, 5) );
+	Assert::same( 8, $cb->invokeArgs(array(3, 5)) );
+	Assert::true( $cb->isCallable() );
+});
 
 
-Assert::exception(function() {
-	Callback::create('undefined')->invoke();
-}, 'Nette\InvalidStateException', "Callback 'undefined' is not callable.");
+test(function() {
+	Assert::exception(function() {
+		Callback::create('undefined')->invoke();
+	}, 'Nette\InvalidStateException', "Callback 'undefined' is not callable.");
 
-Assert::exception(function() {
-	Callback::create(NULL)->invoke();
-}, 'InvalidArgumentException', 'Invalid callback.');
+	Assert::exception(function() {
+		Callback::create(NULL)->invoke();
+	}, 'InvalidArgumentException', 'Invalid callback.');
+});

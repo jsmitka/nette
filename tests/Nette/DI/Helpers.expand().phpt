@@ -4,15 +4,13 @@
  * Test: Nette\DI\Helpers::expand()
  *
  * @author     David Grudl
- * @package    Nette\DI
  */
 
-use Nette\DI\Helpers;
-
+use Nette\DI\Helpers,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::same( 'item', Helpers::expand('item', array()) );

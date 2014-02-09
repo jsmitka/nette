@@ -4,16 +4,14 @@
  * Test: Nette\Application\Routers\SimpleRouter with secured connection.
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
 use Nette\Http,
-	Nette\Application;
-
+	Nette\Application,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $router = new Application\Routers\SimpleRouter(array(

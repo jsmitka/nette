@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Utils;
 
 use Nette;
-
 
 
 /**
@@ -29,7 +24,7 @@ use Nette;
  * @author     David Grudl
  * @internal
  */
-final class SafeStream
+class SafeStream
 {
 	/** Name of stream protocol - safe:// */
 	const PROTOCOL = 'safe';
@@ -53,16 +48,15 @@ final class SafeStream
 	private $writeError = FALSE;
 
 
-
 	/**
 	 * Registers protocol 'safe://'.
 	 * @return bool
 	 */
 	public static function register()
 	{
+		@stream_wrapper_unregister(self::PROTOCOL); // intentionally @
 		return stream_wrapper_register(self::PROTOCOL, __CLASS__);
 	}
-
 
 
 	/**
@@ -73,7 +67,7 @@ final class SafeStream
 	 * @param  string    full path
 	 * @return bool      TRUE on success or FALSE on failure
 	 */
-	public function stream_open($path, $mode, $options, &$opened_path)
+	public function stream_open($path, $mode, $options, & $opened_path)
 	{
 		$path = substr($path, strlen(self::PROTOCOL)+3);  // trim protocol safe://
 
@@ -122,7 +116,7 @@ final class SafeStream
 		if ($mode === 'r+' || $mode[0] === 'a' || $mode[0] === 'c') {
 			$stat = fstat($this->handle);
 			fseek($this->handle, 0);
-			if ($stat['size'] !== 0 && stream_copy_to_stream($this->handle, $this->tempHandle) !== $stat['size']) {
+			if (stream_copy_to_stream($this->handle, $this->tempHandle) !== $stat['size']) {
 				$this->clean();
 				return FALSE;
 			}
@@ -134,7 +128,6 @@ final class SafeStream
 
 		return TRUE;
 	}
-
 
 
 	/**
@@ -155,7 +148,6 @@ final class SafeStream
 	}
 
 
-
 	/**
 	 * Error destructor.
 	 */
@@ -171,7 +163,6 @@ final class SafeStream
 			unlink($this->tempFile);
 		}
 	}
-
 
 
 	/**
@@ -190,16 +181,13 @@ final class SafeStream
 		fclose($this->handle);
 		fclose($this->tempHandle);
 
-		if ($this->writeError /*5.2*|| !(substr(PHP_OS, 0, 3) === 'WIN' ? unlink($this->file) : TRUE)*/
-			|| !rename($this->tempFile, $this->file) // try to rename temp file
-		) {
+		if ($this->writeError || !rename($this->tempFile, $this->file)) { // try to rename temp file
 			unlink($this->tempFile); // otherwise delete temp file
 			if ($this->deleteFile) {
 				unlink($this->file);
 			}
 		}
 	}
-
 
 
 	/**
@@ -211,7 +199,6 @@ final class SafeStream
 	{
 		return fread($this->tempHandle, $length);
 	}
-
 
 
 	/**
@@ -232,6 +219,16 @@ final class SafeStream
 	}
 
 
+	/**
+	 * Truncates a file to a given length.
+	 * @param  int    The size to truncate to.
+	 * @return bool
+	 */
+	public function stream_truncate($size)
+	{
+		return ftruncate($this->tempHandle, $size);
+	}
+
 
 	/**
 	 * Returns the position of the file.
@@ -243,7 +240,6 @@ final class SafeStream
 	}
 
 
-
 	/**
 	 * Returns TRUE if the file pointer is at end-of-file.
 	 * @return bool
@@ -252,7 +248,6 @@ final class SafeStream
 	{
 		return feof($this->tempHandle);
 	}
-
 
 
 	/**
@@ -267,7 +262,6 @@ final class SafeStream
 	}
 
 
-
 	/**
 	 * Gets information about a file referenced by $this->tempHandle.
 	 * @return array
@@ -276,7 +270,6 @@ final class SafeStream
 	{
 		return fstat($this->tempHandle);
 	}
-
 
 
 	/**
@@ -291,7 +284,6 @@ final class SafeStream
 		$path = substr($path, strlen(self::PROTOCOL)+3);
 		return ($flags & STREAM_URL_STAT_LINK) ? @lstat($path) : @stat($path); // intentionally @
 	}
-
 
 
 	/**

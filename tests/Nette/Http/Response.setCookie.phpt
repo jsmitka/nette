@@ -4,15 +4,17 @@
  * Test: Nette\Http\Response::setCookie().
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
-use Nette\Http;
-
+use Nette\Http,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
+if (PHP_SAPI === 'cli') {
+	Tester\Environment::skip('Cookies are not available in CLI');
+}
 
 
 $old = headers_list();

@@ -4,22 +4,19 @@
  * Test: Nette\Caching\Storages\MemcachedStorage files dependency test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Storages\MemcachedStorage,
-	Nette\Caching\Cache;
-
+	Nette\Caching\Cache,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-
 if (!MemcachedStorage::isAvailable()) {
-	Tester\Helpers::skip('Requires PHP extension Memcache.');
+	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
-
 
 
 $key = 'nette-files-key';
@@ -39,13 +36,13 @@ $cache->save($key, $value, array(
 	),
 ));
 
-Assert::true( isset($cache[$key]), 'Is cached?' );
+Assert::true( isset($cache[$key]) );
 
 
 // Modifing dependent file
 file_put_contents($dependentFile, 'a');
 
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );
 
 
 // Writing cache...
@@ -53,7 +50,7 @@ $cache->save($key, $value, array(
 	Cache::FILES => $dependentFile,
 ));
 
-Assert::true( isset($cache[$key]), 'Is cached?' );
+Assert::true( isset($cache[$key]) );
 
 
 // Modifing dependent file
@@ -61,4 +58,4 @@ sleep(2);
 file_put_contents($dependentFile, 'b');
 clearstatcache();
 
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );

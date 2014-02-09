@@ -4,19 +4,16 @@
  * Test: Nette\Templating\Helpers::date()
  *
  * @author     David Grudl
- * @package    Nette\Templating
  */
 
-use Nette\Templating\Helpers;
-
+use Nette\Templating\Helpers,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-
 setlocale(LC_TIME, 'C');
-
 
 
 Assert::null( Helpers::date(NULL), "TemplateHelpers::date(NULL)" );
@@ -38,3 +35,6 @@ Assert::same( "1212-09-26", Helpers::date('1212-09-26', 'Y-m-d'), "TemplateHelpe
 
 
 Assert::same( "1212-09-26", Helpers::date(new DateTime('1212-09-26'), 'Y-m-d'), "TemplateHelpers::date(DateTime, format)" );
+
+
+Assert::same( "30:10:10", Helpers::date(new DateInterval('PT30H10M10S'), '%H:%I:%S'), "TemplateHelpers::date(DateInterval, format)" );

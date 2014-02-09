@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Reflection;
 
 use Nette,
 	Nette\ObjectMixin;
-
 
 
 /**
@@ -63,12 +58,10 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	public function __toString()
 	{
 		return $this->getName();
 	}
-
 
 
 	/**
@@ -81,9 +74,7 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/********************* Reflection layer ****************d*g**/
-
 
 
 	/**
@@ -95,7 +86,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * @return Extension|NULL
 	 */
@@ -103,7 +93,6 @@ class ClassType extends \ReflectionClass
 	{
 		return ($name = $this->getExtensionName()) ? new Extension($name) : NULL;
 	}
-
 
 
 	/**
@@ -119,7 +108,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * @return Method
 	 */
@@ -127,7 +115,6 @@ class ClassType extends \ReflectionClass
 	{
 		return new Method($this->getName(), $name);
 	}
-
 
 
 	/**
@@ -142,7 +129,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * @return ClassType|NULL
 	 */
@@ -150,7 +136,6 @@ class ClassType extends \ReflectionClass
 	{
 		return ($ref = parent::getParentClass()) ? new static($ref->getName()) : NULL;
 	}
-
 
 
 	/**
@@ -165,7 +150,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * @return Property
 	 */
@@ -175,9 +159,7 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/********************* Nette\Annotations support ****************d*g**/
-
 
 
 	/**
@@ -192,7 +174,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * Returns an annotation value.
 	 * @param  string
@@ -205,7 +186,6 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/**
 	 * Returns all annotations.
 	 * @return IAnnotation[][]
@@ -214,7 +194,6 @@ class ClassType extends \ReflectionClass
 	{
 		return AnnotationsParser::getAll($this);
 	}
-
 
 
 	/**
@@ -227,19 +206,7 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	/********************* Nette\Object behaviour ****************d*g**/
-
-
-
-	/**
-	 * @return ClassType
-	 */
-	public /**/static/**/ function getReflection()
-	{
-		return new ClassType(/*5.2*$this*//**/get_called_class()/**/);
-	}
-
 
 
 	public function __call($name, $args)
@@ -248,26 +215,22 @@ class ClassType extends \ReflectionClass
 	}
 
 
-
 	public function &__get($name)
 	{
 		return ObjectMixin::get($this, $name);
 	}
 
 
-
 	public function __set($name, $value)
 	{
-		return ObjectMixin::set($this, $name, $value);
+		ObjectMixin::set($this, $name, $value);
 	}
-
 
 
 	public function __isset($name)
 	{
 		return ObjectMixin::has($this, $name);
 	}
-
 
 
 	public function __unset($name)

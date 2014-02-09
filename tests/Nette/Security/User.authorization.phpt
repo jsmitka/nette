@@ -4,17 +4,15 @@
  * Test: Nette\Security\User authorization.
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
 use Nette\Security\IAuthenticator,
 	Nette\Security\Identity,
-	Nette\Security\IAuthorizator;
-
+	Nette\Security\IAuthorizator,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 // Setup environment
@@ -22,10 +20,9 @@ $_COOKIE = array();
 ob_start();
 
 
-
 class Authenticator implements IAuthenticator
 {
-	/*
+	/**
 	 * @param  array
 	 * @return IIdentity
 	 * @throws Nette\Security\AuthenticationException
@@ -47,7 +44,6 @@ class Authenticator implements IAuthenticator
 }
 
 
-
 class Authorizator implements IAuthorizator
 {
 	/**
@@ -64,10 +60,9 @@ class Authorizator implements IAuthorizator
 }
 
 
+$container = id(new Nette\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
 
-$container = id(new Nette\Config\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
-
-$user = $container->user;
+$user = $container->getService('user');
 
 // guest
 Assert::false( $user->isLoggedIn() );
@@ -76,7 +71,6 @@ Assert::false( $user->isLoggedIn() );
 Assert::same( array('guest'), $user->getRoles() );
 Assert::false( $user->isInRole('admin') );
 Assert::true( $user->isInRole('guest') );
-
 
 
 // authenticated
@@ -95,14 +89,13 @@ Assert::false( $user->isInRole('guest') );
 // authorization
 Assert::exception(function() use ($user) {
 	$user->isAllowed('delete_file');
-}, 'Nette\InvalidStateException', 'Service of type Nette\Security\IAuthorizator not found.');
+}, 'Nette\InvalidStateException', 'Authorizator has not been set.');
 
 $handler = new Authorizator;
 $user->setAuthorizator($handler);
 
 Assert::true( $user->isAllowed('delete_file') );
 Assert::false( $user->isAllowed('sleep_with_jany') );
-
 
 
 // log out

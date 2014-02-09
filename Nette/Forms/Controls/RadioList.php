@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Forms\Controls;
@@ -15,27 +11,21 @@ use Nette,
 	Nette\Utils\Html;
 
 
-
 /**
  * Set of radio button controls.
  *
  * @author     David Grudl
  *
- * @property   array $items
  * @property-read Nette\Utils\Html $separatorPrototype
  * @property-read Nette\Utils\Html $containerPrototype
  */
-class RadioList extends BaseControl
+class RadioList extends ChoiceControl
 {
 	/** @var Nette\Utils\Html  separator element template */
 	protected $separator;
 
 	/** @var Nette\Utils\Html  container element template */
 	protected $container;
-
-	/** @var array */
-	protected $items = array();
-
 
 
 	/**
@@ -44,147 +34,111 @@ class RadioList extends BaseControl
 	 */
 	public function __construct($label = NULL, array $items = NULL)
 	{
-		parent::__construct($label);
+		parent::__construct($label, $items);
 		$this->control->type = 'radio';
 		$this->container = Html::el();
 		$this->separator = Html::el('br');
-		if ($items !== NULL) {
-			$this->setItems($items);
-		}
 	}
-
 
 
 	/**
 	 * Returns selected radio value.
-	 * @param  bool
 	 * @return mixed
 	 */
-	public function getValue($raw = FALSE)
+	public function getValue()
 	{
-		return is_scalar($this->value) && ($raw || isset($this->items[$this->value])) ? $this->value : NULL;
+		return parent::getValue();
 	}
-
-
-
-	/**
-	 * Has been any radio button selected?
-	 * @return bool
-	 */
-	public function isFilled()
-	{
-		return $this->getValue() !== NULL;
-	}
-
-
-
-	/**
-	 * Sets options from which to choose.
-	 * @param  array
-	 * @return RadioList  provides a fluent interface
-	 */
-	public function setItems(array $items)
-	{
-		$this->items = $items;
-		return $this;
-	}
-
-
-
-	/**
-	 * Returns options from which to choose.
-	 * @return array
-	 */
-	final public function getItems()
-	{
-		return $this->items;
-	}
-
 
 
 	/**
 	 * Returns separator HTML element template.
 	 * @return Nette\Utils\Html
 	 */
-	final public function getSeparatorPrototype()
+	public function getSeparatorPrototype()
 	{
 		return $this->separator;
 	}
-
 
 
 	/**
 	 * Returns container HTML element template.
 	 * @return Nette\Utils\Html
 	 */
-	final public function getContainerPrototype()
+	public function getContainerPrototype()
 	{
 		return $this->container;
 	}
 
 
-
 	/**
 	 * Generates control's HTML element.
-	 * @param  mixed
 	 * @return Nette\Utils\Html
 	 */
 	public function getControl($key = NULL)
 	{
-		if ($key === NULL) {
-			$container = clone $this->container;
-			$separator = (string) $this->separator;
-
-		} elseif (!isset($this->items[$key])) {
-			return NULL;
+		if ($key !== NULL) {
+			trigger_error('Partial ' . __METHOD__ . '() is deprecated; use getControlPart() instead.', E_USER_DEPRECATED);
+			return $this->getControlPart($key);
 		}
 
-		$control = parent::getControl();
-		$id = $control->id;
-		$counter = -1;
-		$value = $this->value === NULL ? NULL : (string) $this->getValue();
-		$label = Html::el('label');
-
-		foreach ($this->items as $k => $val) {
-			$counter++;
-			if ($key !== NULL && (string) $key !== (string) $k) {
-				continue;
-			}
-
-			$control->id = $label->for = $id . '-' . $counter;
-			$control->checked = (string) $k === $value;
-			$control->value = $k;
-
-			if ($val instanceof Html) {
-				$label->setHtml($val);
-			} else {
-				$label->setText($this->translate((string) $val));
-			}
-
-			if ($key !== NULL) {
-				return Html::el()->add($control)->add($label);
-			}
-
-			$container->add((string) $control . (string) $label . $separator);
-			$control->data('nette-rules', NULL);
-			// TODO: separator after last item?
+		$input = parent::getControl();
+		$ids = array();
+		foreach ($this->getItems() as $value => $label) {
+			$ids[$value] = $input->id . '-' . $value;
 		}
 
-		return $container;
+		return $this->container->setHtml(
+			Nette\Forms\Helpers::createInputList(
+				$this->translate($this->getItems()),
+				array_merge($input->attrs, array(
+					'id:' => $ids,
+					'checked?' => $this->value,
+					'disabled:' => $this->disabled,
+					'data-nette-rules:' => array(key($ids) => $input->attrs['data-nette-rules']),
+				)),
+				array('for:' => $ids) + $this->label->attrs,
+				$this->separator
+			)
+		);
 	}
-
 
 
 	/**
 	 * Generates label's HTML element.
 	 * @param  string
-	 * @return void
+	 * @return Nette\Utils\Html
 	 */
-	public function getLabel($caption = NULL)
+	public function getLabel($caption = NULL, $key = NULL)
 	{
-		$label = parent::getLabel($caption);
-		$label->for = NULL;
-		return $label;
+		if ($key !== NULL) {
+			trigger_error('Partial ' . __METHOD__ . '() is deprecated; use getLabelPart() instead.', E_USER_DEPRECATED);
+			return $this->getLabelPart($key);
+		}
+		return parent::getLabel($caption)->for(NULL);
+	}
+
+
+	/**
+	 * @return Nette\Utils\Html
+	 */
+	public function getControlPart($key)
+	{
+		return parent::getControl()->addAttributes(array(
+			'id' => $this->getHtmlId() . '-' . $key,
+			'checked' => in_array($key, (array) $this->value),
+			'disabled' => is_array($this->disabled) ? isset($this->disabled[$key]) : $this->disabled,
+			'value' => $key,
+		));
+	}
+
+
+	/**
+	 * @return Nette\Utils\Html
+	 */
+	public function getLabelPart($key)
+	{
+		return parent::getLabel($this->items[$key])->for($this->getHtmlId() . '-' . $key);
 	}
 
 }

@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Http;
@@ -15,11 +11,11 @@ use Nette,
 	Nette\Security\IIdentity;
 
 
-
 /**
  * Session storage for user object.
  *
- * @author David Grudl, Jan Tichý
+ * @author  David Grudl
+ * @author  Jan Tichý
  */
 class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 {
@@ -33,18 +29,16 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	private $sessionSection;
 
 
-
 	public function  __construct(Session $sessionHandler)
 	{
 		$this->sessionHandler = $sessionHandler;
 	}
 
 
-
 	/**
 	 * Sets the authenticated status of this user.
 	 * @param  bool
-	 * @return UserStorage Provides a fluent interface
+	 * @return self
 	 */
 	public function setAuthenticated($state)
 	{
@@ -66,7 +60,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	}
 
 
-
 	/**
 	 * Is this user authenticated?
 	 * @return bool
@@ -78,17 +71,15 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	}
 
 
-
 	/**
 	 * Sets the user identity.
-	 * @return UserStorage Provides a fluent interface
+	 * @return self
 	 */
 	public function setIdentity(IIdentity $identity = NULL)
 	{
 		$this->getSessionSection(TRUE)->identity = $identity;
 		return $this;
 	}
-
 
 
 	/**
@@ -102,11 +93,10 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	}
 
 
-
 	/**
 	 * Changes namespace; allows more users to share a session.
 	 * @param  string
-	 * @return UserStorage Provides a fluent interface
+	 * @return self
 	 */
 	public function setNamespace($namespace)
 	{
@@ -116,7 +106,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 		}
 		return $this;
 	}
-
 
 
 	/**
@@ -129,12 +118,11 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	}
 
 
-
 	/**
 	 * Enables log out after inactivity.
 	 * @param  string|int|DateTime Number of seconds or timestamp
 	 * @param  int Log out when the browser is closed | Clear the identity from persistent storage?
-	 * @return UserStorage Provides a fluent interface
+	 * @return self
 	 */
 	public function setExpiration($time, $flags = 0)
 	{
@@ -157,7 +145,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 	}
 
 
-
 	/**
 	 * Why was user logged out?
 	 * @return int
@@ -167,7 +154,6 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 		$session = $this->getSessionSection(FALSE);
 		return $session ? $session->reason : NULL;
 	}
-
 
 
 	/**

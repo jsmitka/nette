@@ -4,15 +4,13 @@
  * Test: Nette\Templating\Helpers::bytes()
  *
  * @author     David Grudl
- * @package    Nette\Templating
  */
 
-use Nette\Templating\Helpers;
-
+use Nette\Templating\Helpers,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::same( "0 B", Helpers::bytes(0.1), "TemplateHelpers::bytes(0.1)" );

@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Latte;
 
 use Nette;
-
 
 
 /**
@@ -29,19 +24,17 @@ class Engine extends Nette\Object
 	private $compiler;
 
 
-
 	public function __construct()
 	{
 		$this->parser = new Parser;
 		$this->compiler = new Compiler;
-		$this->compiler->defaultContentType = Compiler::CONTENT_XHTML;
+		$this->compiler->defaultContentType = Compiler::CONTENT_HTML;
 
 		Macros\CoreMacros::install($this->compiler);
 		$this->compiler->addMacro('cache', new Macros\CacheMacro($this->compiler));
 		Macros\UIMacros::install($this->compiler);
 		Macros\FormMacros::install($this->compiler);
 	}
-
 
 
 	/**
@@ -55,7 +48,6 @@ class Engine extends Nette\Object
 	}
 
 
-
 	/**
 	 * @return Parser
 	 */
@@ -63,7 +55,6 @@ class Engine extends Nette\Object
 	{
 		return $this->parser;
 	}
-
 
 
 	/**

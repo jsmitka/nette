@@ -4,32 +4,33 @@
  * Test: Nette\Image factories.
  *
  * @author     David Grudl
- * @package    Nette
  */
 
-use Nette\Image;
-
+use Nette\Image,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-
 if (!extension_loaded('gd')) {
-	Tester\Helpers::skip('Requires PHP extension GD.');
+	Tester\Environment::skip('Requires PHP extension GD.');
 }
 
 
+test(function() {
+	$image = Image::fromFile('images/logo.gif');
+	// logo.gif
+	Assert::same( 176, $image->width );
 
-$image = Image::fromFile('images/logo.gif');
-// logo.gif
-Assert::same( 176, $image->width, 'width' );
-
-Assert::same( 104, $image->height, 'height' );
+	Assert::same( 104, $image->height );
+});
 
 
-$image = Image::fromBlank(200, 300, Image::rgb(255, 128, 0));
-// blank
-Assert::same( 200, $image->width, 'width' );
+test(function() {
+	$image = Image::fromBlank(200, 300, Image::rgb(255, 128, 0));
+	// blank
+	Assert::same( 200, $image->width );
 
-Assert::same( 300, $image->height, 'height' );
+	Assert::same( 300, $image->height );
+});

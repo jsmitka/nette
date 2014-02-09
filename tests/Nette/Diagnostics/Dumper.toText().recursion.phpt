@@ -4,15 +4,13 @@
  * Test: Nette\Diagnostics\Dumper::toText() recursion
  *
  * @author     David Grudl
- * @package    Nette\Diagnostics
  */
 
-use Nette\Diagnostics\Dumper;
-
+use Nette\Diagnostics\Dumper,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $arr = array(1, 2, 3);
@@ -29,11 +27,10 @@ Assert::match( 'array (4)
 ', Dumper::toText($arr) );
 
 
-
 $arr = (object) array('x' => 1, 'y' => 2);
 $arr->z = & $arr;
-Assert::match( 'stdClass (3)
+Assert::match( 'stdClass #%h%
    x => 1
    y => 2
-   z => stdClass (3) { RECURSION }
+   z => stdClass #%h% { RECURSION }
 ', Dumper::toText($arr) );

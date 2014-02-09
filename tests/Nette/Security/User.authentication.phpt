@@ -4,16 +4,14 @@
  * Test: Nette\Security\User authentication.
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
 use Nette\Security\IAuthenticator,
-	Nette\Security\Identity;
-
+	Nette\Security\Identity,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 // Setup environment
@@ -21,10 +19,9 @@ $_COOKIE = array();
 ob_start();
 
 
-
 class Authenticator implements IAuthenticator
 {
-	/*
+	/**
 	 * @param  array
 	 * @return IIdentity
 	 * @throws Nette\Security\AuthenticationException
@@ -46,11 +43,9 @@ class Authenticator implements IAuthenticator
 }
 
 
-
 function onLoggedIn($user) {
 	// TODO: add test
 }
-
 
 
 function onLoggedOut($user) {
@@ -58,10 +53,9 @@ function onLoggedOut($user) {
 }
 
 
+$container = id(new Nette\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
 
-$container = id(new Nette\Config\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
-
-$user = $container->user;
+$user = $container->getService('user');
 $user->onLoggedIn[] = 'onLoggedIn';
 $user->onLoggedOut[] = 'onLoggedOut';
 
@@ -71,12 +65,11 @@ Assert::null( $user->getIdentity() );
 Assert::null( $user->getId() );
 
 
-
 // authenticate
 Assert::exception(function() use ($user) {
 	// login without handler
 	$user->login('jane', '');
-}, 'Nette\InvalidStateException', 'Service of type Nette\Security\IAuthenticator not found.');
+}, 'Nette\InvalidStateException', 'Authenticator has not been set.');
 
 $handler = new Authenticator;
 $user->setAuthenticator($handler);
@@ -104,8 +97,6 @@ Assert::true( $user->isLoggedIn() );
 Assert::equal( new Identity('John Doe', 'admin'), $user->getIdentity() );
 
 
-
-
 // log out
 // logging out...
 $user->logout(FALSE);
@@ -119,8 +110,6 @@ $user->logout(TRUE);
 
 Assert::false( $user->isLoggedIn() );
 Assert::null( $user->getIdentity() );
-
-
 
 
 // namespace

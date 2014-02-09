@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database\Reflection;
 
 use Nette;
-
 
 
 /**
@@ -33,7 +28,6 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
 	protected $table;
 
 
-
 	/**
 	 * Create conventional structure.
 	 * @param  string %s stands for table name
@@ -48,12 +42,10 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
 	}
 
 
-
 	public function getPrimary($table)
 	{
 		return sprintf($this->primary, $this->getColumnFromTable($table));
 	}
-
 
 
 	public function getHasManyReference($table, $key)
@@ -66,7 +58,6 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
 	}
 
 
-
 	public function getBelongsToReference($table, $key)
 	{
 		$table = $this->getColumnFromTable($table);
@@ -75,7 +66,6 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
 			sprintf($this->foreign, $key, $table),
 		);
 	}
-
 
 
 	protected function getColumnFromTable($name)

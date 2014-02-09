@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\UI;
 
 use Nette;
-
 
 
 /**
@@ -35,15 +30,13 @@ abstract class Control extends PresenterComponent implements IRenderable
 	public $snippetMode;
 
 
-
 	/********************* template factory ****************d*g**/
-
 
 
 	/**
 	 * @return Nette\Templating\ITemplate
 	 */
-	final public function getTemplate()
+	public function getTemplate()
 	{
 		if ($this->template === NULL) {
 			$value = $this->createTemplate();
@@ -55,7 +48,6 @@ abstract class Control extends PresenterComponent implements IRenderable
 		}
 		return $this->template;
 	}
-
 
 
 	/**
@@ -73,7 +65,7 @@ abstract class Control extends PresenterComponent implements IRenderable
 		$template->control = $template->_control = $this;
 		$template->presenter = $template->_presenter = $presenter;
 		if ($presenter instanceof Presenter) {
-			$template->setCacheStorage($presenter->getContext()->{'nette.templateCacheStorage'});
+			$template->setCacheStorage($presenter->getContext()->getService('nette.templateCacheStorage'));
 			$template->user = $presenter->getUser();
 			$template->netteHttpResponse = $presenter->getHttpResponse();
 			$template->netteCacheStorage = $presenter->getContext()->getByType('Nette\Caching\IStorage');
@@ -94,7 +86,6 @@ abstract class Control extends PresenterComponent implements IRenderable
 	}
 
 
-
 	/**
 	 * Descendant can override this method to customize template compile-time filters.
 	 * @param  Nette\Templating\Template
@@ -102,9 +93,8 @@ abstract class Control extends PresenterComponent implements IRenderable
 	 */
 	public function templatePrepareFilters($template)
 	{
-		$template->registerFilter($this->getPresenter()->getContext()->createNette__Latte());
+		$template->registerFilter($this->getPresenter()->getContext()->createService('nette.latte'));
 	}
-
 
 
 	/**
@@ -127,31 +117,19 @@ abstract class Control extends PresenterComponent implements IRenderable
 	}
 
 
-
 	/********************* rendering ****************d*g**/
-
 
 
 	/**
 	 * Forces control or its snippet to repaint.
-	 * @param  string
 	 * @return void
 	 */
-	public function invalidateControl($snippet = NULL)
+	public function redrawControl($snippet = NULL, $redraw = TRUE)
 	{
-		$this->invalidSnippets[$snippet] = TRUE;
-	}
+		if ($redraw) {
+			$this->invalidSnippets[$snippet] = TRUE;
 
-
-
-	/**
-	 * Allows control or its snippet to not repaint.
-	 * @param  string
-	 * @return void
-	 */
-	public function validateControl($snippet = NULL)
-	{
-		if ($snippet === NULL) {
+		} elseif ($snippet === NULL) {
 			$this->invalidSnippets = array();
 
 		} else {
@@ -159,6 +137,18 @@ abstract class Control extends PresenterComponent implements IRenderable
 		}
 	}
 
+
+	/** @deprecated */
+	function invalidateControl($snippet = NULL)
+	{
+		$this->redrawControl($snippet);
+	}
+
+	/** @deprecated */
+	function validateControl($snippet = NULL)
+	{
+		$this->redrawControl($snippet, FALSE);
+	}
 
 
 	/**
@@ -195,7 +185,6 @@ abstract class Control extends PresenterComponent implements IRenderable
 			return isset($this->invalidSnippets[NULL]) || isset($this->invalidSnippets[$snippet]);
 		}
 	}
-
 
 
 	/**

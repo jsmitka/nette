@@ -4,16 +4,14 @@
  * Test: Nette\Caching\Storages\FileStorage expiration test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Cache,
-	Nette\Caching\Storages\FileStorage;
-
+	Nette\Caching\Storages\FileStorage,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $key = 'nette';
@@ -31,11 +29,10 @@ $cache->save($key, $value, array(
 // Sleeping 1 second
 sleep(1);
 clearstatcache();
-Assert::true( isset($cache[$key]), 'Is cached?' );
-
+Assert::true( isset($cache[$key]) );
 
 
 // Sleeping 3 seconds
 sleep(3);
 clearstatcache();
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );

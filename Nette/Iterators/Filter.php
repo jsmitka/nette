@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Iterators;
 
 use Nette;
-
 
 
 /**
@@ -29,14 +24,13 @@ class Filter extends \FilterIterator
 	public function __construct(\Iterator $iterator, $callback)
 	{
 		parent::__construct($iterator);
-		$this->callback = new Nette\Callback($callback);
+		$this->callback = Nette\Utils\Callback::check($callback);
 	}
-
 
 
 	public function accept()
 	{
-		return $this->callback->invoke($this->current(), $this->key(), $this);
+		return call_user_func($this->callback, $this->current(), $this->key(), $this);
 	}
 
 }

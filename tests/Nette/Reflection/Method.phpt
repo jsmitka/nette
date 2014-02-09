@@ -4,15 +4,13 @@
  * Test: Nette\Reflection\Method tests.
  *
  * @author     David Grudl
- * @package    Nette\Reflection
  */
 
-use Nette\Reflection;
-
+use Nette\Reflection,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class A {

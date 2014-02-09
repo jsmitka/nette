@@ -4,16 +4,14 @@
  * Test: Nette\Caching\Storages\FileStorage clean with Cache::ALL
  *
  * @author     Petr Procházka
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Storages\FileStorage,
-	Nette\Caching\Cache;
-
+	Nette\Caching\Cache,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $storage = new FileStorage(TEMP_DIR);

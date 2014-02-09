@@ -4,16 +4,14 @@
  * Test: Nette\Application\UI\Presenter and checking params.
  *
  * @author     David Grudl
- * @package    Nette\Application\UI
  */
 
 use Nette\Http,
-	Nette\Application;
-
+	Nette\Application,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestPresenter extends Application\UI\Presenter
@@ -28,7 +26,7 @@ class TestPresenter extends Application\UI\Presenter
 }
 
 
-$container = id(new Nette\Config\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
+$container = id(new Nette\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
 $presenter = new TestPresenter;
 $container->callMethod($presenter->injectPrimary);
 

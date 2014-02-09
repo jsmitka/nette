@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Utils;
 
 use Nette;
-
 
 
 /**
@@ -32,7 +27,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Checks if the string is valid for the specified encoding.
 	 * @param  string  byte stream to check
@@ -43,7 +37,6 @@ class Strings
 	{
 		return $s === self::fixEncoding($s, $encoding);
 	}
-
 
 
 	/**
@@ -64,7 +57,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Returns a specific character.
 	 * @param  int     codepoint
@@ -75,7 +67,6 @@ class Strings
 	{
 		return iconv('UTF-32BE', $encoding . '//IGNORE', pack('N', $code));
 	}
-
 
 
 	/**
@@ -90,7 +81,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Ends the $haystack string with the suffix $needle?
 	 * @param  string
@@ -101,7 +91,6 @@ class Strings
 	{
 		return strlen($needle) === 0 || substr($haystack, -strlen($needle)) === $needle;
 	}
-
 
 
 	/**
@@ -116,7 +105,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Returns a part of UTF-8 string.
 	 * @param  string
@@ -129,9 +117,11 @@ class Strings
 		if ($length === NULL) {
 			$length = self::length($s);
 		}
-		return function_exists('mb_substr') ? mb_substr($s, $start, $length, 'UTF-8') : iconv_substr($s, $start, $length, 'UTF-8'); // MB is much faster
+		if (function_exists('mb_substr')) {
+			return mb_substr($s, $start, $length, 'UTF-8'); // MB is much faster
+		}
+		return iconv_substr($s, $start, $length, 'UTF-8');
 	}
-
 
 
 	/**
@@ -141,9 +131,7 @@ class Strings
 	 */
 	public static function normalize($s)
 	{
-		// standardize line endings to unix-like
-		$s = str_replace("\r\n", "\n", $s); // DOS
-		$s = strtr($s, "\r", "\n"); // Mac
+		$s = self::normalizeNewLines($s);
 
 		// remove control characters; leave \t + \n
 		$s = preg_replace('#[\x00-\x08\x0B-\x1F\x7F]+#', '', $s);
@@ -157,6 +145,16 @@ class Strings
 		return $s;
 	}
 
+
+	/**
+	 * Standardize line endings to unix-like.
+	 * @param  string  UTF-8 encoding or 8-bit
+	 * @return string
+	 */
+	public static function normalizeNewLines($s)
+	{
+		return str_replace(array("\r\n", "\r"), "\n", $s);
+	}
 
 
 	/**
@@ -183,7 +181,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Converts to web safe characters [a-z0-9-] text.
 	 * @param  string  UTF-8 encoding
@@ -201,7 +198,6 @@ class Strings
 		$s = trim($s, '-');
 		return $s;
 	}
-
 
 
 	/**
@@ -229,7 +225,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Indents the content from the left.
 	 * @param  string  UTF-8 encoding or 8-bit
@@ -239,9 +234,11 @@ class Strings
 	 */
 	public static function indent($s, $level = 1, $chars = "\t")
 	{
-		return $level < 1 ? $s : self::replace($s, '#(?:^|[\r\n]+)(?=[^\r\n])#', '$0' . str_repeat($chars, $level));
+		if ($level > 0) {
+			$s = self::replace($s, '#(?:^|[\r\n]+)(?=[^\r\n])#', '$0' . str_repeat($chars, $level));
+		}
+		return $s;
 	}
-
 
 
 	/**
@@ -255,7 +252,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Convert to upper case.
 	 * @param  string  UTF-8 encoding
@@ -265,7 +261,6 @@ class Strings
 	{
 		return mb_strtoupper($s, 'UTF-8');
 	}
-
 
 
 	/**
@@ -279,7 +274,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Capitalize string.
 	 * @param  string  UTF-8 encoding
@@ -289,7 +283,6 @@ class Strings
 	{
 		return mb_convert_case($s, MB_CASE_TITLE, 'UTF-8');
 	}
-
 
 
 	/**
@@ -312,7 +305,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Finds the length of common prefix of strings.
 	 * @param  string|array
@@ -328,7 +320,7 @@ class Strings
 		for ($i = 0; $i < strlen($first); $i++) {
 			foreach ($strings as $s) {
 				if (!isset($s[$i]) || $first[$i] !== $s[$i]) {
-					if ($i && $first[$i-1] >= "\x80" && $first[$i] >= "\x80" && $first[$i] < "\xC0") {
+					while ($i && $first[$i-1] >= "\x80" && $first[$i] >= "\x80" && $first[$i] < "\xC0") {
 						$i--;
 					}
 					return substr($first, 0, $i);
@@ -337,7 +329,6 @@ class Strings
 		}
 		return $first;
 	}
-
 
 
 	/**
@@ -351,7 +342,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Strips whitespace.
 	 * @param  string  UTF-8 encoding
@@ -363,7 +353,6 @@ class Strings
 		$charlist = preg_quote($charlist, '#');
 		return self::replace($s, '#^['.$charlist.']+|['.$charlist.']+\z#u', '');
 	}
-
 
 
 	/**
@@ -381,7 +370,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Pad a string to a certain length with another string.
 	 * @param  string  UTF-8 encoding
@@ -397,7 +385,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Reverse string.
 	 * @param  string  UTF-8 encoding
@@ -409,38 +396,14 @@ class Strings
 	}
 
 
-
 	/**
-	 * Generate random string.
-	 * @param  int
-	 * @param  string
-	 * @return string
+	 * Use Nette\Utils\Random::generate
+	 * @deprecated
 	 */
 	public static function random($length = 10, $charlist = '0-9a-z')
 	{
-		$charlist = str_shuffle(preg_replace_callback('#.-.#', function($m) {
-			return implode('', range($m[0][0], $m[0][2]));
-		}, $charlist));
-		$chLen = strlen($charlist);
-
-		static $rand3;
-		if (!$rand3) {
-			$rand3 = md5(serialize($_SERVER), TRUE);
-		}
-
-		$s = '';
-		for ($i = 0; $i < $length; $i++) {
-			if ($i % 5 === 0) {
-				list($rand, $rand2) = explode(' ', microtime());
-				$rand += lcg_value();
-			}
-			$rand *= $chLen;
-			$s .= $charlist[($rand + $rand2 + ord($rand3[$i % strlen($rand3)])) % $chLen];
-			$rand -= (int) $rand;
-		}
-		return $s;
+		return Random::generate($length, $charlist);
 	}
-
 
 
 	/**
@@ -463,7 +426,6 @@ class Strings
 		}
 		return $res;
 	}
-
 
 
 	/**
@@ -494,7 +456,6 @@ class Strings
 	}
 
 
-
 	/**
 	 * Performs a global regular expression match.
 	 * @param  string
@@ -512,7 +473,7 @@ class Strings
 			restore_error_handler();
 			throw new RegexpException("$message in pattern: $pattern");
 		});
-		$res = preg_match_all(
+		preg_match_all(
 			$pattern, $subject, $m,
 			($flags & PREG_PATTERN_ORDER) ? $flags : ($flags | PREG_SET_ORDER),
 			$offset
@@ -523,7 +484,6 @@ class Strings
 		}
 		return $m;
 	}
-
 
 
 	/**
@@ -577,7 +537,6 @@ class Strings
 	}
 
 }
-
 
 
 /**

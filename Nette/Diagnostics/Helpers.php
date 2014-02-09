@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Diagnostics;
@@ -14,13 +10,12 @@ namespace Nette\Diagnostics;
 use Nette;
 
 
-
 /**
  * Rendering helpers for Debugger.
  *
  * @author     David Grudl
  */
-final class Helpers
+class Helpers
 {
 
 	/**
@@ -38,12 +33,11 @@ final class Helpers
 			return Nette\Utils\Html::el('a')
 				->href(strtr(Debugger::$editor, array('%file' => rawurlencode($file), '%line' => $line)))
 				->title("$file:$line")
-				->setHtml(htmlSpecialChars(rtrim($dir, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR . '<b>' . htmlSpecialChars(basename($file)) . '</b>' . ($line ? ":$line" : ''));
+				->setHtml(htmlSpecialChars(rtrim($dir, DIRECTORY_SEPARATOR), ENT_IGNORE) . DIRECTORY_SEPARATOR . '<b>' . htmlSpecialChars(basename($file), ENT_IGNORE) . '</b>' . ($line ? ":$line" : ''));
 		} else {
 			return Nette\Utils\Html::el('span')->setText($file . ($line ? ":$line" : ''));
 		}
 	}
-
 
 
 	public static function findTrace(array $trace, $method, & $index = NULL)
@@ -61,25 +55,28 @@ final class Helpers
 	}
 
 
-
-	/** @deprecated */
-	public static function htmlDump($var)
+	public static function fixStack($exception)
 	{
-		trigger_error(__METHOD__ . '() is deprecated; use Nette\Diagnostics\Dumper::toHtml() instead.', E_USER_DEPRECATED);
-		return Dumper::toHtml($var);
-	}
-
-	public static function clickableDump($var)
-	{
-		trigger_error(__METHOD__ . '() is deprecated; use Nette\Diagnostics\Dumper::toHtml() instead.', E_USER_DEPRECATED);
-		return Dumper::toHtml($var);
-	}
-
-	/** @deprecated */
-	public static function textDump($var)
-	{
-		trigger_error(__METHOD__ . '() is deprecated; use Nette\Diagnostics\Dumper::toText() instead.', E_USER_DEPRECATED);
-		return Dumper::toText($var);
+		if (function_exists('xdebug_get_function_stack')) {
+			$stack = array();
+			foreach (array_slice(array_reverse(xdebug_get_function_stack()), 2, -1) as $row) {
+				$frame = array(
+					'file' => $row['file'],
+					'line' => $row['line'],
+					'function' => isset($row['function']) ? $row['function'] : '*unknown*',
+					'args' => array(),
+				);
+				if (!empty($row['class'])) {
+					$frame['type'] = isset($row['type']) && $row['type'] === 'dynamic' ? '->' : '::';
+					$frame['class'] = $row['class'];
+				}
+				$stack[] = $frame;
+			}
+			$ref = new \ReflectionProperty('Exception', 'trace');
+			$ref->setAccessible(TRUE);
+			$ref->setValue($exception, $stack);
+		}
+		return $exception;
 	}
 
 }

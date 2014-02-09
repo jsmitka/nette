@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\DI;
@@ -14,13 +10,12 @@ namespace Nette\DI;
 use Nette;
 
 
-
 /**
  * The DI helpers.
  *
  * @author     David Grudl
  */
-final class Helpers
+class Helpers
 {
 
 	/**
@@ -40,8 +35,12 @@ final class Helpers
 			}
 			return $res;
 
-		} elseif ($var instanceof Statement) {
-			return new Statement(self::expand($var->entity, $params, $recursive), self::expand($var->arguments, $params, $recursive));
+		} elseif ($var instanceof \stdClass || $var instanceof Statement) {
+			$res = clone $var;
+			foreach ($var as $key => $val) {
+				$res->$key = self::expand($val, $params, $recursive);
+			}
+			return $res;
 
 		} elseif (!is_string($var)) {
 			return $var;
@@ -75,26 +74,6 @@ final class Helpers
 		}
 		return $res;
 	}
-
-
-
-	/**
-	 * Expand counterpart.
-	 * @param  mixed
-	 * @return mixed
-	 */
-	public static function escape($value)
-	{
-		if (is_array($value)) {
-			array_walk_recursive($value, function(&$val) {
-				$val = is_string($val) ? str_replace('%', '%%', $val) : $val;
-			});
-		} elseif (is_string($value)) {
-			$value = str_replace('%', '%%', $value);
-		}
-		return $value;
-	}
-
 
 
 	/**
@@ -158,7 +137,6 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * Generates list of properties with annotation @inject.
 	 * @return array
@@ -174,12 +152,12 @@ final class Helpers
 			} elseif (!$type) {
 				throw new Nette\InvalidStateException("Property $property has not @var annotation.");
 
-			} elseif (!class_exists($type)) {
+			} elseif (!class_exists($type) && !interface_exists($type)) {
 				if ($type[0] !== '\\') {
-					$type = $class->getNamespaceName() . '\\' . $type;
+					$type = $property->getDeclaringClass()->getNamespaceName() . '\\' . $type;
 				}
-				if (!class_exists($type)) {
-					throw new Nette\InvalidStateException("Please use a fully qualified name of class in @var annotation at $property property. Class '$type' cannot be found.");
+				if (!class_exists($type) && !interface_exists($type)) {
+					throw new Nette\InvalidStateException("Please use a fully qualified name of class/interface in @var annotation at $property property. Class '$type' cannot be found.");
 				}
 			}
 			$res[$property->getName()] = $type;

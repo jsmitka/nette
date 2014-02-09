@@ -26,17 +26,16 @@ if (%A%}
 
 <style type="text/css">
 <!--
-#<?php echo Nette\Templating\Helpers::escapeXml($id) ?> {
+#<?php echo Nette\Templating\Helpers::escapeHtmlComment($id) ?> {
 	background: blue;
 }
 -->
 </style>
 
 
-
 <script>
 <!--
-var html = <?php echo Nette\Templating\Helpers::escapeXml($el) ?>;
+var html = <?php echo Nette\Templating\Helpers::escapeHtmlComment($el) ?>;
 -->
 </script>
 
@@ -51,18 +50,18 @@ var html = <?php echo Nette\Templating\Helpers::escapeXml($el) ?>;
 >click on me</p>
 
 
-<!-- <?php echo Nette\Templating\Helpers::escapeXml($comment) ?> -->
+<!-- <?php echo Nette\Templating\Helpers::escapeHtmlComment($comment) ?> -->
 
 
 </ul>
 
 
 <ul>
-<?php $iterations = 0; foreach ($people as $person): ?>	<li><?php echo Nette\Templating\Helpers::escapeXml($person) ?></li>
-<?php $iterations++; endforeach ?>
+<?php $iterations = 0; foreach ($people as $person) { ?>	<li><?php echo Nette\Templating\Helpers::escapeXml($person) ?></li>
+<?php $iterations++; } ?>
 </ul>
 
-<?php if (true): ?><p>
+<?php if (true) { ?><p>
 	<div><p>true</div>
 </p>
-<?php endif ;
+<?php }

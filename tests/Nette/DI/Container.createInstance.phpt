@@ -4,15 +4,13 @@
  * Test: Nette\DI\ContainerBuilder and Container: createInstance()
  *
  * @author     David Grudl
- * @package    Nette\DI
  */
 
-use Nette\DI;
-
+use Nette\DI,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class Test
@@ -32,7 +30,6 @@ class Test
 }
 
 
-
 $builder = new DI\ContainerBuilder;
 $builder->addDefinition('one')
 	->setClass('stdClass');
@@ -46,7 +43,7 @@ require TEMP_DIR . '/code.php';
 $container = new Container;
 
 $test = $container->createInstance('Test');
-Assert::true( $test instanceof Test );
+Assert::type( 'Test', $test );
 Assert::same( $container, $test->container );
-Assert::same( FALSE, $container->callMethod(array($test, 'method')) );
-Assert::same( TRUE, $container->callMethod(array($test, 'method'), array((object) array('prop' => TRUE))) );
+Assert::false( $container->callMethod(array($test, 'method')) );
+Assert::true( $container->callMethod(array($test, 'method'), array((object) array('prop' => TRUE))) );

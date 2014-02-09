@@ -3,22 +3,23 @@ php:
     - 5.3.3
     - 5.4
     - 5.5
+    - hhvm
 
 matrix:
     allow_failures:
-        - php: 5.5
+        - php: hhvm
 
-script: "VERBOSE=true ./tests/run-tests.sh -s tests/"
+script: VERBOSE=true ./tests/run-tests.sh -s tests/
 
-#services:
-#  - memcached
+services:
+    - memcached
 
 before_script:
-# Install Nette Tester
-  - composer install --no-interaction --dev
+    # Install Nette Tester
+    - composer install --no-interaction --dev --prefer-source
 
-# Create databases.ini
-  - cp ./tests/Nette/Database/databases.sample.ini ./tests/Nette/Database/databases.ini
+    # Create databases.ini
+    - cp ./tests/Nette/Database/databases.sample.ini ./tests/Nette/Database/databases.ini
 
-# Create Postgre database
-  - psql -c 'CREATE DATABASE nette_test' -U postgres
+    # Create Postgre database
+    - psql -c 'CREATE DATABASE nette_test' -U postgres

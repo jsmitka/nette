@@ -4,14 +4,11 @@
  * Test: Nette\Object event handlers.
  *
  * @author     David Grudl
- * @package    Nette
  */
 
-
-
+use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestClass extends Nette\Object
@@ -27,12 +24,10 @@ class TestClass extends Nette\Object
 }
 
 
-
 function handler($obj)
 {
 	$obj->counter++;
 }
-
 
 
 class Handler
@@ -44,11 +39,11 @@ class Handler
 }
 
 
-
 $obj = new TestClass;
 $obj->onPublic();
 
 $var = new stdClass;
+$var->counter = 0;
 
 $obj->onPublic[] = 'handler';
 
@@ -56,12 +51,10 @@ $obj->onPublic($var);
 Assert::same( 1, $var->counter );
 
 
-
 $obj->onPublic[] = new Handler;
 
 $obj->onPublic($var);
 Assert::same( 3, $var->counter );
-
 
 
 Assert::exception(function() use ($obj) {

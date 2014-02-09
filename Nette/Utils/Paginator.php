@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Utils;
 
 use Nette;
-
 
 
 /**
@@ -48,18 +43,16 @@ class Paginator extends Nette\Object
 	private $itemCount;
 
 
-
 	/**
 	 * Sets current page number.
 	 * @param  int
-	 * @return Paginator  provides a fluent interface
+	 * @return self
 	 */
 	public function setPage($page)
 	{
 		$this->page = (int) $page;
 		return $this;
 	}
-
 
 
 	/**
@@ -72,7 +65,6 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns first page number.
 	 * @return int
@@ -81,7 +73,6 @@ class Paginator extends Nette\Object
 	{
 		return $this->base;
 	}
-
 
 
 	/**
@@ -94,18 +85,16 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets first page (base) number.
 	 * @param  int
-	 * @return Paginator  provides a fluent interface
+	 * @return self
 	 */
 	public function setBase($base)
 	{
 		$this->base = (int) $base;
 		return $this;
 	}
-
 
 
 	/**
@@ -116,7 +105,6 @@ class Paginator extends Nette\Object
 	{
 		return $this->base;
 	}
-
 
 
 	/**
@@ -130,7 +118,6 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Is the current page the first one?
 	 * @return bool
@@ -139,7 +126,6 @@ class Paginator extends Nette\Object
 	{
 		return $this->getPageIndex() === 0;
 	}
-
 
 
 	/**
@@ -152,7 +138,6 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns the total number of pages.
 	 * @return int|NULL
@@ -163,18 +148,16 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets the number of items to display on a single page.
 	 * @param  int
-	 * @return Paginator  provides a fluent interface
+	 * @return self
 	 */
 	public function setItemsPerPage($itemsPerPage)
 	{
 		$this->itemsPerPage = max(1, (int) $itemsPerPage);
 		return $this;
 	}
-
 
 
 	/**
@@ -187,18 +170,16 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets the total number of items.
 	 * @param  int (or NULL as infinity)
-	 * @return Paginator  provides a fluent interface
+	 * @return self
 	 */
 	public function setItemCount($itemCount)
 	{
 		$this->itemCount = ($itemCount === FALSE || $itemCount === NULL) ? NULL : max(0, (int) $itemCount);
 		return $this;
 	}
-
 
 
 	/**
@@ -211,7 +192,6 @@ class Paginator extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns the absolute index of the first item on current page.
 	 * @return int
@@ -220,7 +200,6 @@ class Paginator extends Nette\Object
 	{
 		return $this->getPageIndex() * $this->itemsPerPage;
 	}
-
 
 
 	/**
@@ -233,7 +212,6 @@ class Paginator extends Nette\Object
 			? NULL
 			: max(0, $this->itemCount - ($this->getPageIndex() + 1) * $this->itemsPerPage);
 	}
-
 
 
 	/**

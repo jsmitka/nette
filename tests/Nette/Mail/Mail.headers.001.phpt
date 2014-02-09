@@ -4,17 +4,15 @@
  * Test: Nette\Mail\Message invalid headers.
  *
  * @author     David Grudl
- * @package    Nette\Mail
  */
 
-use Nette\Mail\Message;
-
+use Nette\Mail\Message,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 require __DIR__ . '/Mail.inc';
-
 
 
 $mail = new Message();

@@ -1,18 +1,13 @@
 <?php
 
 /**
- * This file is part of the Nette Framework.
- *
+ * This file is part of the Nette Framework (http://nette.org)
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * This source file is subject to the "Nette license", and/or
- * GPL license. For more information please see http://nette.org
  */
 
 namespace Nette\Latte;
 
 use Nette;
-
 
 
 /**
@@ -45,7 +40,6 @@ class HtmlNode extends Nette\Object
 
 	/** @var int */
 	public $offset;
-
 
 
 	public function __construct($name, self $parentNode = NULL)

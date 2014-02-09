@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Http;
 
 use Nette;
-
 
 
 /**
@@ -33,13 +28,11 @@ class Context extends Nette\Object
 	private $response;
 
 
-
 	public function __construct(IRequest $request, IResponse $response)
 	{
 		$this->request = $request;
 		$this->response = $response;
 	}
-
 
 
 	/**
@@ -92,7 +85,6 @@ class Context extends Nette\Object
 	}
 
 
-
 	/**
 	 * @return IRequest
 	 */
@@ -100,7 +92,6 @@ class Context extends Nette\Object
 	{
 		return $this->request;
 	}
-
 
 
 	/**

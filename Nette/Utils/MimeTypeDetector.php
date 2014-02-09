@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Utils;
@@ -14,13 +10,12 @@ namespace Nette\Utils;
 use Nette;
 
 
-
 /**
  * Mime type detector.
  *
  * @author     David Grudl
  */
-final class MimeTypeDetector
+class MimeTypeDetector
 {
 
 	/**
@@ -30,7 +25,6 @@ final class MimeTypeDetector
 	{
 		throw new Nette\StaticClassException;
 	}
-
 
 
 	/**
@@ -57,7 +51,6 @@ final class MimeTypeDetector
 
 		return isset($type) && preg_match('#^\S+/\S+\z#', $type) ? $type : 'application/octet-stream';
 	}
-
 
 
 	/**

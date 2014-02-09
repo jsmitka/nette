@@ -4,20 +4,15 @@
  * Test: Nette\Http\Session storage.
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
 use Nette\Object,
 	Nette\Http\ISessionStorage,
-	Nette\Http\Session;
-
+	Nette\Http\Session,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
-
-ini_set('session.save_path', TEMP_DIR);
-
 
 
 class MySessionStorage extends Object implements ISessionStorage
@@ -60,8 +55,8 @@ class MySessionStorage extends Object implements ISessionStorage
 }
 
 
-$container = id(new Nette\Config\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
+$container = id(new Nette\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
+$session = $container->getService('session');
 
-$session = $container->session;
 $session->setStorage(new MySessionStorage);
 $session->start();

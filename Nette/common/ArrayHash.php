@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette;
 
 use Nette;
-
 
 
 /**
@@ -42,7 +37,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	}
 
 
-
 	/**
 	 * Returns an iterator over all items.
 	 * @return \RecursiveArrayIterator
@@ -53,7 +47,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	}
 
 
-
 	/**
 	 * Returns items count.
 	 * @return int
@@ -62,7 +55,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	{
 		return count((array) $this);
 	}
-
 
 
 	/**
@@ -78,7 +70,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	}
 
 
-
 	/**
 	 * Returns a item.
 	 * @return mixed
@@ -89,7 +80,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	}
 
 
-
 	/**
 	 * Determines whether a item exists.
 	 * @return bool
@@ -98,7 +88,6 @@ class ArrayHash extends \stdClass implements \ArrayAccess, \Countable, \Iterator
 	{
 		return isset($this->$key);
 	}
-
 
 
 	/**

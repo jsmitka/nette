@@ -4,17 +4,15 @@
  * Test: Nette\Application\Routers\Route with ExtraDefaultParam
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
-use Nette\Application\Routers\Route;
-
+use Nette\Application\Routers\Route,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 require __DIR__ . '/Route.inc';
-
 
 
 $route = new Route('<presenter>/<action>/<id \d{1,3}>/', array(

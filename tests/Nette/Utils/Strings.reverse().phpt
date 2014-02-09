@@ -4,17 +4,13 @@
  * Test: Nette\Utils\Strings::reverse()
  *
  * @author     bojovyletoun
- * @package    Nette\Utils
- * @phpversion 5.3
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
-
 
 
 $t1 = "\x60,\xc8\xb6,\xe0\xb8\xa2,\xf0\xa0\x81\xa2";

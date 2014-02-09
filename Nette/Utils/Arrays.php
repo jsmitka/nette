@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Utils;
@@ -14,13 +10,12 @@ namespace Nette\Utils;
 use Nette;
 
 
-
 /**
  * Array tools library.
  *
  * @author     David Grudl
  */
-final class Arrays
+class Arrays
 {
 
 	/**
@@ -30,7 +25,6 @@ final class Arrays
 	{
 		throw new Nette\StaticClassException;
 	}
-
 
 
 	/**
@@ -53,7 +47,6 @@ final class Arrays
 	}
 
 
-
 	/**
 	 * Returns reference to array item or $default if item is not set.
 	 * @return mixed
@@ -69,7 +62,6 @@ final class Arrays
 		}
 		return $arr;
 	}
-
 
 
 	/**
@@ -88,7 +80,6 @@ final class Arrays
 	}
 
 
-
 	/**
 	 * Searches the array for a given key and returns the offset if successful.
 	 * @return int    offset if it is found, FALSE otherwise
@@ -100,24 +91,22 @@ final class Arrays
 	}
 
 
-
 	/**
 	 * Inserts new array before item specified by key.
 	 * @return void
 	 */
-	public static function insertBefore(array &$arr, $key, array $inserted)
+	public static function insertBefore(array & $arr, $key, array $inserted)
 	{
 		$offset = self::searchKey($arr, $key);
 		$arr = array_slice($arr, 0, $offset, TRUE) + $inserted + array_slice($arr, $offset, count($arr), TRUE);
 	}
 
 
-
 	/**
 	 * Inserts new array after item specified by key.
 	 * @return void
 	 */
-	public static function insertAfter(array &$arr, $key, array $inserted)
+	public static function insertAfter(array & $arr, $key, array $inserted)
 	{
 		$offset = self::searchKey($arr, $key);
 		$offset = $offset === FALSE ? count($arr) : $offset + 1;
@@ -125,12 +114,11 @@ final class Arrays
 	}
 
 
-
 	/**
 	 * Renames key in array.
 	 * @return void
 	 */
-	public static function renameKey(array &$arr, $oldKey, $newKey)
+	public static function renameKey(array & $arr, $oldKey, $newKey)
 	{
 		$offset = self::searchKey($arr, $oldKey);
 		if ($offset !== FALSE) {
@@ -139,7 +127,6 @@ final class Arrays
 			$arr = array_combine($keys, $arr);
 		}
 	}
-
 
 
 	/**
@@ -161,18 +148,19 @@ final class Arrays
 	}
 
 
-
 	/**
 	 * Returns flattened array.
 	 * @return array
 	 */
-	public static function flatten(array $arr)
+	public static function flatten(array $arr, $preserveKeys = FALSE)
 	{
 		$res = array();
-		array_walk_recursive($arr, function($a) use (& $res) { $res[] = $a; });
+		$cb = $preserveKeys
+			? function($v, $k) use (& $res) { $res[$k] = $v; }
+			: function($v) use (& $res) { $res[] = $v; };
+		array_walk_recursive($arr, $cb);
 		return $res;
 	}
-
 
 
 	/**
@@ -182,6 +170,58 @@ final class Arrays
 	public static function isList($value)
 	{
 		return is_array($value) && (!$value || array_keys($value) === range(0, count($value) - 1));
+	}
+
+
+	/**
+	 * Reformats table to associative tree. Path looks like 'field|field[]field->field=field'.
+	 * @return array|stdClass
+	 */
+	public static function associate(array $arr, $path)
+	{
+		$parts = is_array($path)
+			? $path
+			: preg_split('#(\[\]|->|=|\|)#', $path, NULL, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
+		if (!$parts || $parts[0] === '=' || $parts[0] === '|' || $parts === array('->')) {
+			throw new Nette\InvalidArgumentException("Invalid path '$path'.");
+		}
+
+		$res = $parts[0] === '->' ? new \stdClass : array();
+
+		foreach ($arr as $rowOrig) {
+			$row = (array) $rowOrig;
+			$x = & $res;
+
+			for ($i = 0; $i < count($parts); $i++) {
+				$part = $parts[$i];
+				if ($part === '[]') {
+					$x = & $x[];
+
+				} elseif ($part === '=') {
+					if (isset($parts[++$i])) {
+						$x = $row[$parts[$i]];
+						$row = NULL;
+					}
+
+				} elseif ($part === '->') {
+					if (isset($parts[++$i])) {
+						$x = & $x->{$row[$parts[$i]]};
+					} else {
+						$row = is_object($rowOrig) ? $rowOrig : (object) $row;
+					}
+
+				} elseif ($part !== '|') {
+					$x = & $x[(string) $row[$part]];
+				}
+			}
+
+			if ($x === NULL) {
+				$x = $row;
+			}
+		}
+
+		return $res;
 	}
 
 }

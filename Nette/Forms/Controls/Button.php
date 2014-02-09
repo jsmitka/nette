@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Forms\Controls;
 
 use Nette;
-
 
 
 /**
@@ -33,6 +28,16 @@ class Button extends BaseControl
 	}
 
 
+	/**
+	 * Is button pressed?
+	 * @return bool
+	 */
+	public function isFilled()
+	{
+		$value = $this->getValue();
+		return $value !== NULL && $value !== array();
+	}
+
 
 	/**
 	 * Bypasses label generation.
@@ -44,7 +49,6 @@ class Button extends BaseControl
 	}
 
 
-
 	/**
 	 * Generates control's HTML element.
 	 * @param  string
@@ -52,9 +56,13 @@ class Button extends BaseControl
 	 */
 	public function getControl($caption = NULL)
 	{
-		$control = parent::getControl();
-		$control->value = $this->translate($caption === NULL ? $this->caption : $caption);
-		return $control;
+		$this->setOption('rendered', TRUE);
+		$el = clone $this->control;
+		return $el->addAttributes(array(
+			'name' => $this->getHtmlName(),
+			'disabled' => $this->isDisabled(),
+			'value' => $this->translate($caption === NULL ? $this->caption : $caption),
+		));
 	}
 
 }

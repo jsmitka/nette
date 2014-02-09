@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database\Reflection;
 
 use Nette;
-
 
 
 /**
@@ -35,7 +30,6 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 	protected $loadedStructure;
 
 
-
 	/**
 	 * Create autodiscovery structure.
 	 */
@@ -49,14 +43,12 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 	}
 
 
-
 	public function __destruct()
 	{
 		if ($this->cache && $this->structure !== $this->loadedStructure) {
 			$this->cache->save('structure', $this->structure);
 		}
 	}
-
 
 
 	public function getPrimary($table)
@@ -82,7 +74,6 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 
 		return $primary;
 	}
-
 
 
 	public function getHasManyReference($table, $key, $refresh = TRUE)
@@ -111,8 +102,7 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 			}
 
 			foreach ($candidates as $candidate) {
-				list($targetTable, $targetColumn) = $candidate;
-				if (strtolower($targetTable) === strtolower($key)) {
+				if (strtolower($candidate[0]) === strtolower($key)) {
 					return $candidate;
 				}
 			}
@@ -129,7 +119,6 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 			throw new AmbiguousReferenceKeyException('Ambiguous joining column in related call.');
 		}
 	}
-
 
 
 	public function getBelongsToReference($table, $key, $refresh = TRUE)
@@ -151,9 +140,10 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 	}
 
 
-
 	protected function reloadAllForeignKeys()
 	{
+		$this->structure['hasMany'] = $this->structure['belongsTo'] = array();
+
 		foreach ($this->connection->getSupplementalDriver()->getTables() as $table) {
 			if ($table['view'] == FALSE) {
 				$this->reloadForeignKeys($table['name']);
@@ -166,7 +156,6 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 			});
 		}
 	}
-
 
 
 	protected function reloadForeignKeys($table)

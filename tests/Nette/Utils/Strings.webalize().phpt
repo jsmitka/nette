@@ -4,15 +4,13 @@
  * Test: Nette\Utils\Strings::webalize()
  *
  * @author     David Grudl
- * @package    Nette\Utils
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::same( 'zlutoucky-kun-oooo', Strings::webalize("&\xc5\xbdLU\xc5\xa4OU\xc4\x8cK\xc3\x9d K\xc5\xae\xc5\x87 \xc3\xb6\xc5\x91\xc3\xb4o!") ); // &ŽLUŤOUČKÝ KŮŇ öőôo!

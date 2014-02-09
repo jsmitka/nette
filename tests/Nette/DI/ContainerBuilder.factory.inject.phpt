@@ -4,11 +4,10 @@
  * Test: Nette\DI\ContainerBuilder and generated factories with inject methods.
  *
  * @author     Filip Procházka
- * @package    Nette\DI
  */
 
-use Nette\DI;
-
+use Nette\DI,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
@@ -53,9 +52,9 @@ require TEMP_DIR . '/code.php';
 
 $container = new Container;
 
-Assert::true( $container->getService('lorem') instanceof LoremFactory );
+Assert::type( 'LoremFactory', $container->getService('lorem') );
 
 $lorem = $container->getService('lorem')->create();
 
-Assert::true( $lorem instanceof Lorem );
-Assert::true( $lorem->ipsum instanceof Ipsum );
+Assert::type( 'Lorem', $lorem );
+Assert::type( 'Ipsum', $lorem->ipsum );

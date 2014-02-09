@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Forms\Controls;
 
 use Nette;
-
 
 
 /**
@@ -22,19 +17,53 @@ use Nette;
  */
 class HiddenField extends BaseControl
 {
-	/** @var string */
-	private $forcedValue;
+	/** @var bool */
+	private $persistValue;
 
 
-
-	public function __construct($forcedValue = NULL)
+	public function __construct($persistentValue = NULL)
 	{
 		parent::__construct();
 		$this->control->type = 'hidden';
-		$this->value = (string) $forcedValue;
-		$this->forcedValue = $forcedValue;
+		if ($persistentValue !== NULL) {
+			$this->unmonitor('Nette\Forms\Form');
+			$this->persistValue = TRUE;
+			$this->value = (string) $persistentValue;
+		}
 	}
 
+
+	/**
+	 * Sets control's value.
+	 * @param  string
+	 * @return self
+	 */
+	public function setValue($value)
+	{
+		if (!is_scalar($value) && $value !== NULL && !method_exists($value, '__toString')) {
+			throw new Nette\InvalidArgumentException('Value must be scalar or NULL, ' . gettype($value) . " given in field '{$this->name}'.");
+		}
+		if (!$this->persistValue) {
+			$this->value = (string) $value;
+		}
+		return $this;
+	}
+
+
+	/**
+	 * Generates control's HTML element.
+	 * @return Nette\Utils\Html
+	 */
+	public function getControl()
+	{
+		$this->setOption('rendered', TRUE);
+		$el = clone $this->control;
+		return $el->addAttributes(array(
+			'name' => $this->getHtmlName(),
+			'disabled' => $this->isDisabled(),
+			'value' => $this->value,
+		));
+	}
 
 
 	/**
@@ -47,29 +76,14 @@ class HiddenField extends BaseControl
 	}
 
 
-
 	/**
-	 * Sets control's value.
-	 * @param  string
-	 * @return HiddenField  provides a fluent interface
+	 * Adds error message to the list.
+	 * @param  string  error message
+	 * @return void
 	 */
-	public function setValue($value)
+	public function addError($message)
 	{
-		$this->value = is_scalar($value) ? (string) $value : '';
-		return $this;
-	}
-
-
-
-	/**
-	 * Generates control's HTML element.
-	 * @return Nette\Utils\Html
-	 */
-	public function getControl()
-	{
-		return parent::getControl()
-			->value($this->forcedValue === NULL ? $this->value : $this->forcedValue)
-			->data('nette-rules', NULL);
+		$this->getForm()->addError($message);
 	}
 
 }

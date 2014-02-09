@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database;
 
 use Nette;
-
 
 
 /**
@@ -22,9 +17,11 @@ use Nette;
  */
 interface ISupplementalDriver
 {
-	const SUPPORT_COLUMNS_META = 'meta',
-		SUPPORT_SEQUENCE = 'sequence',
-		SUPPORT_SELECT_UNGROUPED_COLUMNS = 'ungrouped_cols';
+	const SUPPORT_SEQUENCE = 'sequence',
+		SUPPORT_SELECT_UNGROUPED_COLUMNS = 'ungrouped_cols',
+		SUPPORT_MULTI_INSERT_AS_SELECT = 'insert_as_select',
+		SUPPORT_MULTI_COLUMN_AS_OR_COND = 'multi_column_as_or',
+		SUPPORT_SUBSELECT = 'subselect';
 
 	/**
 	 * Delimites identifier for use in a SQL statement.
@@ -42,10 +39,9 @@ interface ISupplementalDriver
 
 	/**
 	 * Formats date-time for use in a SQL statement.
-	 * @param  \DateTime
 	 * @return string
 	 */
-	function formatDateTime(\DateTime $value);
+	function formatDateTime(/*\DateTimeInterface*/ $value);
 
 	/**
 	 * Encodes string for use in a LIKE statement.
@@ -62,15 +58,14 @@ interface ISupplementalDriver
 	 * @param  int
 	 * @return void
 	 */
-	function applyLimit(&$sql, $limit, $offset);
+	function applyLimit(& $sql, $limit, $offset);
 
 	/**
 	 * Normalizes result row.
 	 * @param  array
-	 * @param  Statement
 	 * @return array
 	 */
-	function normalizeRow($row, $statement);
+	function normalizeRow($row);
 
 
 	/********************* reflection ****************d*g**/
@@ -102,6 +97,12 @@ interface ISupplementalDriver
 	 * @return array
 	 */
 	function getForeignKeys($table);
+
+	/**
+	 * Returns associative array of detected types (IReflection::FIELD_*) in result set.
+	 * @return array
+	 */
+	function getColumnTypes(\PDOStatement $statement);
 
 	/**
 	 * Cheks if driver supports specific property

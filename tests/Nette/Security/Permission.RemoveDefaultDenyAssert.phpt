@@ -4,22 +4,19 @@
  * Test: Nette\Security\Permission Ensures that removing the default deny rule results in assertion method being removed.
  *
  * @author     David Grudl
- * @package    Nette\Security
  */
 
-use Nette\Security\Permission;
-
+use Nette\Security\Permission,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 function falseAssertion()
 {
 	return FALSE;
 }
-
 
 
 $acl = new Permission;

@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Forms;
 
 use Nette;
-
 
 
 /**
@@ -32,16 +27,14 @@ class ControlGroup extends Nette\Object
 	private $options = array();
 
 
-
 	public function __construct()
 	{
 		$this->controls = new \SplObjectStorage;
 	}
 
 
-
 	/**
-	 * @return ControlGroup  provides a fluent interface
+	 * @return self
 	 */
 	public function add()
 	{
@@ -62,7 +55,6 @@ class ControlGroup extends Nette\Object
 	}
 
 
-
 	/**
 	 * @return array IFormControl
 	 */
@@ -70,7 +62,6 @@ class ControlGroup extends Nette\Object
 	{
 		return iterator_to_array($this->controls);
 	}
-
 
 
 	/**
@@ -84,7 +75,7 @@ class ControlGroup extends Nette\Object
 	 *
 	 * @param  string key
 	 * @param  mixed  value
-	 * @return ControlGroup  provides a fluent interface
+	 * @return self
 	 */
 	public function setOption($key, $value)
 	{
@@ -98,25 +89,23 @@ class ControlGroup extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns user-specific option.
 	 * @param  string key
 	 * @param  mixed  default value
 	 * @return mixed
 	 */
-	final public function getOption($key, $default = NULL)
+	public function getOption($key, $default = NULL)
 	{
 		return isset($this->options[$key]) ? $this->options[$key] : $default;
 	}
-
 
 
 	/**
 	 * Returns user-specific options.
 	 * @return array
 	 */
-	final public function getOptions()
+	public function getOptions()
 	{
 		return $this->options;
 	}

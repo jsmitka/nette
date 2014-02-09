@@ -4,15 +4,13 @@
  * Test: Nette\Reflection\AnnotationsParser using user classes.
  *
  * @author     David Grudl
- * @package    Nette\Reflection
  */
 
-use Nette\Reflection;
-
+use Nette\Reflection,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class SecuredAnnotation extends Reflection\Annotation
@@ -32,7 +30,6 @@ class TestClass {
 	public $foo;
 
 }
-
 
 
 // Class annotations

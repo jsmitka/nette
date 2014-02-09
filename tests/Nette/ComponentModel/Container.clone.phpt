@@ -4,17 +4,15 @@
  * Test: Nette\ComponentModel\Container cloning.
  *
  * @author     David Grudl
- * @package    Nette\ComponentModel
  */
 
 use Nette\ComponentModel\Container,
 	Nette\Object,
-	Nette\ComponentModel\IContainer;
-
+	Nette\ComponentModel\IContainer,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestClass extends Container implements ArrayAccess
@@ -51,9 +49,7 @@ class TestClass extends Container implements ArrayAccess
 }
 
 
-/**/Object::extensionMethod('Nette\\ComponentModel\\IContainer::export', function($thisObj)/**/
-/*5.2* function IComponentContainer_prototype_export($thisObj)*/
-{
+Object::extensionMethod('Nette\\ComponentModel\\IContainer::export', function($thisObj) {
 	$res = array("({$thisObj->reflection->name})" => $thisObj->name);
 	if ($thisObj instanceof IContainer) {
 		foreach ($thisObj->getComponents() as $name => $obj) {
@@ -61,7 +57,7 @@ class TestClass extends Container implements ArrayAccess
 		}
 	}
 	return $res;
-}/**/);/**/
+});
 
 
 class A extends TestClass {}
@@ -88,7 +84,6 @@ Assert::same( array(
 Assert::same( 'b-c-d-e', $a['b']['c']['d']['e']->lookupPath('A', FALSE) );
 
 
-
 // ==> clone 'c'
 $dolly = clone $a['b']['c'];
 
@@ -101,7 +96,6 @@ Assert::null( $dolly['d']['e']->lookupPath('A', FALSE) );
 Assert::same( 'd-e', $dolly['d']['e']->lookupPath('C', FALSE) );
 
 
-
 // ==> clone 'b'
 $dolly = clone $a['b'];
 
@@ -109,7 +103,6 @@ Assert::same( array(
 	'C::detached(A)',
 	'B::detached(A)',
 ), Notes::fetch());
-
 
 
 // ==> a['dolly'] = 'b'

@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database;
 
 use Nette;
-
 
 
 /**
@@ -30,7 +25,7 @@ class Helpers
 		'^_' => IReflection::FIELD_TEXT, // PostgreSQL arrays
 		'BYTEA|BLOB|BIN' => IReflection::FIELD_BINARY,
 		'TEXT|CHAR|POINT|INTERVAL' => IReflection::FIELD_TEXT,
-		'YEAR|BYTE|COUNTER|SERIAL|INT|LONG|SHORT' => IReflection::FIELD_INTEGER,
+		'YEAR|BYTE|COUNTER|SERIAL|INT|LONG|SHORT|^TINY$' => IReflection::FIELD_INTEGER,
 		'CURRENCY|REAL|MONEY|FLOAT|DOUBLE|DECIMAL|NUMERIC|NUMBER' => IReflection::FIELD_FLOAT,
 		'^TIME$' => IReflection::FIELD_TIME,
 		'TIME' => IReflection::FIELD_DATETIME, // DATETIME, TIMESTAMP
@@ -39,20 +34,19 @@ class Helpers
 	);
 
 
-
 	/**
 	 * Displays complete result set as HTML table for debug purposes.
 	 * @return void
 	 */
-	public static function dumpResult(Statement $statement)
+	public static function dumpResult(ResultSet $result)
 	{
-		echo "\n<table class=\"dump\">\n<caption>" . htmlSpecialChars($statement->queryString) . "</caption>\n";
-		if (!$statement->columnCount()) {
-			echo "\t<tr>\n\t\t<th>Affected rows:</th>\n\t\t<td>", $statement->rowCount(), "</td>\n\t</tr>\n</table>\n";
+		echo "\n<table class=\"dump\">\n<caption>" . htmlSpecialChars($result->getQueryString()) . "</caption>\n";
+		if (!$result->getColumnCount()) {
+			echo "\t<tr>\n\t\t<th>Affected rows:</th>\n\t\t<td>", $result->getRowCount(), "</td>\n\t</tr>\n</table>\n";
 			return;
 		}
 		$i = 0;
-		foreach ($statement as $row) {
+		foreach ($result as $row) {
 			if ($i === 0) {
 				echo "<thead>\n\t<tr>\n\t\t<th>#row</th>\n";
 				foreach ($row as $col => $foo) {
@@ -77,7 +71,6 @@ class Helpers
 	}
 
 
-
 	/**
 	 * Returns syntax highlighted SQL command.
 	 * @param  string
@@ -86,7 +79,7 @@ class Helpers
 	public static function dumpSql($sql, array $params = NULL)
 	{
 		static $keywords1 = 'SELECT|(?:ON\s+DUPLICATE\s+KEY)?UPDATE|INSERT(?:\s+INTO)?|REPLACE(?:\s+INTO)?|DELETE|CALL|UNION|FROM|WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|OFFSET|SET|VALUES|LEFT\s+JOIN|INNER\s+JOIN|TRUNCATE';
-		static $keywords2 = 'ALL|DISTINCT|DISTINCTROW|IGNORE|AS|USING|ON|AND|OR|IN|IS|NOT|NULL|LIKE|RLIKE|REGEXP|TRUE|FALSE';
+		static $keywords2 = 'ALL|DISTINCT|DISTINCTROW|IGNORE|AS|USING|ON|AND|OR|IN|IS|NOT|NULL|[RI]?LIKE|REGEXP|TRUE|FALSE';
 
 		// insert new lines
 		$sql = " $sql ";
@@ -116,8 +109,8 @@ class Helpers
 		}, $sql);
 
 		// parameters
-		$i = 0;
-		$sql = preg_replace_callback('#\?#', function() use ($params, & $i) {
+		$sql = preg_replace_callback('#\?#', function() use ($params) {
+			static $i = 0;
 			if (!isset($params[$i])) {
 				return '?';
 			}
@@ -144,9 +137,26 @@ class Helpers
 	}
 
 
+	/**
+	 * Common column type detection.
+	 * @return array
+	 */
+	public static function detectTypes(\PDOStatement $statement)
+	{
+		$types = array();
+		$count = $statement->columnCount(); // driver must be meta-aware, see PHP bugs #53782, #54695
+		for ($col = 0; $col < $count; $col++) {
+			$meta = $statement->getColumnMeta($col);
+			if (isset($meta['native_type'])) {
+				$types[$meta['name']] = self::detectType($meta['native_type']);
+			}
+		}
+		return $types;
+	}
+
 
 	/**
-	 * Heuristic type detection.
+	 * Heuristic column type detection.
 	 * @param  string
 	 * @return string
 	 * @internal
@@ -166,9 +176,8 @@ class Helpers
 	}
 
 
-
 	/**
-	 * Import SQL dump from file - extreme fast.
+	 * Import SQL dump from file - extremely fast.
 	 * @return int  count of commands
 	 */
 	public static function loadFromFile(Connection $connection, $file)
@@ -181,18 +190,25 @@ class Helpers
 		}
 
 		$count = 0;
+		$delimiter = ';';
 		$sql = '';
 		while (!feof($handle)) {
-			$s = fgets($handle);
-			$sql .= $s;
-			if (substr(rtrim($s), -1) === ';') {
-				$connection->exec($sql); // native query without logging
+			$s = rtrim(fgets($handle));
+			if (!strncasecmp($s, 'DELIMITER ', 10)) {
+				$delimiter = substr($s, 10);
+
+			} elseif (substr($s, -strlen($delimiter)) === $delimiter) {
+				$sql .= substr($s, 0, -strlen($delimiter));
+				$connection->query($sql); // native query without logging
 				$sql = '';
 				$count++;
+
+			} else {
+				$sql .= $s . "\n";
 			}
 		}
 		if (trim($sql) !== '') {
-			$connection->exec($sql);
+			$connection->query($sql);
 			$count++;
 		}
 		fclose($handle);
@@ -200,13 +216,50 @@ class Helpers
 	}
 
 
-
-	public static function createDebugPanel($connection, $explain = TRUE)
+	public static function createDebugPanel($connection, $explain = TRUE, $name = NULL)
 	{
 		$panel = new Nette\Database\Diagnostics\ConnectionPanel($connection);
 		$panel->explain = $explain;
-		Nette\Diagnostics\Debugger::$bar->addPanel($panel);
+		$panel->name = $name;
+		Nette\Diagnostics\Debugger::getBar()->addPanel($panel);
 		return $panel;
+	}
+
+
+	/**
+	 * Reformat source to key -> value pairs.
+	 * @return array
+	 */
+	public static function toPairs(array $rows, $key = NULL, $value = NULL)
+	{
+		if (!$rows) {
+			return array();
+		}
+
+		$keys = array_keys((array) reset($rows));
+		if (!count($keys)) {
+			throw new \LogicException('Result set does not contain any column.');
+
+		} elseif ($key === NULL && $value === NULL) {
+			if (count($keys) === 1) {
+				list($value) = $keys;
+			} else {
+				list($key, $value) = $keys;
+			}
+		}
+
+		$return = array();
+		if ($key === NULL) {
+			foreach ($rows as $row) {
+				$return[] = ($value === NULL ? $row : $row[$value]);
+			}
+		} else {
+			foreach ($rows as $row) {
+				$return[is_object($row[$key]) ? (string) $row[$key] : $row[$key]] = ($value === NULL ? $row : $row[$value]);
+			}
+		}
+
+		return $return;
 	}
 
 }

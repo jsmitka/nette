@@ -4,15 +4,13 @@
  * Test: Nette\Http\Url ftp://
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
-use Nette\Http\Url;
-
+use Nette\Http\Url,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $url = new Url('ftp://ftp.is.co.za/rfc/rfc3986.txt');

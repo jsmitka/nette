@@ -4,15 +4,13 @@
  * Test: Nette\Latte\Engine and Texy.
  *
  * @author     David Grudl
- * @package    Nette\Latte
  */
 
-use Nette\Latte;
-
+use Nette\Latte,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class MockTexy
@@ -24,7 +22,6 @@ class MockTexy
 }
 
 
-
 $template = new Nette\Templating\Template;
 $template->registerFilter(new Latte\Engine);
 $template->registerHelper('texy', array(new MockTexy, 'process'));
@@ -33,18 +30,18 @@ $template->registerHelperLoader('Nette\Templating\Helpers::loader');
 $template->hello = '<i>Hello</i>';
 $template->people = array('John', 'Mary', 'Paul');
 
-$result = (string) $template->setSource(<<<EOD
+$result = (string) $template->setSource(<<<'EOD'
 {block|lower|texy}
-{\$hello}
+{$hello}
 ---------
-- Escaped: {\$hello}
-- Non-escaped: {!\$hello}
+- Escaped: {$hello}
+- Non-escaped: {$hello|noescape}
 
 - Escaped expression: {="<" . "b" . ">hello" . "</b>"}
 
-- Non-escaped expression: {!="<" . "b" . ">hello" . "</b>"}
+- Non-escaped expression: {="<" . "b" . ">hello" . "</b>"|noescape}
 
-- Array access: {\$people[1]}
+- Array access: {$people[1]}
 
 [* image.jpg *]
 {/block}

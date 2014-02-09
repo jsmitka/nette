@@ -4,15 +4,13 @@
  * Test: Nette\Http\Url http://
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
-use Nette\Http\Url;
-
+use Nette\Http\Url,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $url = new Url('http://username:password@hostname:60/path/script.php?arg=value#anchor');
@@ -32,3 +30,6 @@ Assert::same( 'http://hostname:60',  $url->hostUrl );
 Assert::same( 'http://hostname:60/path/script.php?arg=value#anchor',  $url->absoluteUrl );
 Assert::same( 'http://hostname:60/path/',  $url->baseUrl );
 Assert::same( 'script.php?arg=value#anchor',  $url->relativeUrl );
+
+$url->scheme = NULL;
+Assert::same( '//username:password@hostname:60/path/script.php?arg=value#anchor',  $url->absoluteUrl );

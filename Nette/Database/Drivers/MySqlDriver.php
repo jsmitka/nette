@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database\Drivers;
 
 use Nette;
-
 
 
 /**
@@ -30,7 +25,6 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	private $connection;
 
 
-
 	/**
 	 * Driver options:
 	 *   - charset => character encoding to set (default is utf8)
@@ -41,18 +35,15 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 		$this->connection = $connection;
 		$charset = isset($options['charset']) ? $options['charset'] : 'utf8';
 		if ($charset) {
-			$connection->exec("SET NAMES '$charset'");
+			$connection->query("SET NAMES '$charset'");
 		}
 		if (isset($options['sqlmode'])) {
-			$connection->exec("SET sql_mode='$options[sqlmode]'");
+			$connection->query("SET sql_mode='$options[sqlmode]'");
 		}
-		$connection->exec("SET time_zone='" . date('P') . "'");
 	}
 
 
-
 	/********************* SQL ****************d*g**/
-
 
 
 	/**
@@ -65,7 +56,6 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Formats boolean for use in a SQL statement.
 	 */
@@ -75,15 +65,13 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(\DateTime $value)
+	public function formatDateTime(/*\DateTimeInterface*/ $value)
 	{
 		return $value->format("'Y-m-d H:i:s'");
 	}
-
 
 
 	/**
@@ -96,11 +84,10 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Injects LIMIT/OFFSET to the SQL query.
 	 */
-	public function applyLimit(&$sql, $limit, $offset)
+	public function applyLimit(& $sql, $limit, $offset)
 	{
 		if ($limit >= 0 || $offset > 0) {
 			// see http://dev.mysql.com/doc/refman/5.0/en/select.html
@@ -110,19 +97,16 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Normalizes result row.
 	 */
-	public function normalizeRow($row, $statement)
+	public function normalizeRow($row)
 	{
 		return $row;
 	}
 
 
-
 	/********************* reflection ****************d*g**/
-
 
 
 	/**
@@ -144,7 +128,6 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 		}
 		return $tables;
 	}
-
 
 
 	/**
@@ -177,7 +160,6 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Returns metadata for all indexes in a table.
 	 */
@@ -200,7 +182,6 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Returns metadata for all foreign keys in a table.
 	 */
@@ -221,13 +202,36 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
+	/**
+	 * Returns associative array of detected types (IReflection::FIELD_*) in result set.
+	 */
+	public function getColumnTypes(\PDOStatement $statement)
+	{
+		$types = array();
+		$count = $statement->columnCount();
+		for ($col = 0; $col < $count; $col++) {
+			$meta = $statement->getColumnMeta($col);
+			if (isset($meta['native_type'])) {
+				$types[$meta['name']] = $type = Nette\Database\Helpers::detectType($meta['native_type']);
+				if ($type === Nette\Database\IReflection::FIELD_TIME) {
+					$types[$meta['name']] = Nette\Database\IReflection::FIELD_TIME_INTERVAL;
+				}
+			}
+		}
+		return $types;
+	}
+
 
 	/**
 	 * @return bool
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::SUPPORT_COLUMNS_META || $item === self::SUPPORT_SELECT_UNGROUPED_COLUMNS;
+		// MULTI_COLUMN_AS_OR_COND due to mysql bugs:
+		// - http://bugs.mysql.com/bug.php?id=31188
+		// - http://bugs.mysql.com/bug.php?id=35819
+		// and more.
+		return $item === self::SUPPORT_SELECT_UNGROUPED_COLUMNS || $item === self::SUPPORT_MULTI_COLUMN_AS_OR_COND;
 	}
 
 }

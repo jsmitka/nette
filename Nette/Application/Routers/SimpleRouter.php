@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\Routers;
 
 use Nette,
 	Nette\Application;
-
 
 
 /**
@@ -37,7 +32,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 
 	/** @var int */
 	private $flags;
-
 
 
 	/**
@@ -67,7 +61,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Maps HTTP request to a Request object.
 	 * @return Nette\Application\Request|NULL
@@ -81,8 +74,8 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 		$params = $httpRequest->getQuery();
 		$params += $this->defaults;
 
-		if (!isset($params[self::PRESENTER_KEY])) {
-			throw new Nette\InvalidStateException('Missing presenter.');
+		if (!isset($params[self::PRESENTER_KEY]) || !is_string($params[self::PRESENTER_KEY])) {
+			return NULL;
 		}
 
 		$presenter = $this->module . $params[self::PRESENTER_KEY];
@@ -97,7 +90,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 			array(Application\Request::SECURED => $httpRequest->isSecured())
 		);
 	}
-
 
 
 	/**
@@ -136,7 +128,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Returns default values.
 	 * @return array
@@ -145,7 +136,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	{
 		return $this->defaults;
 	}
-
 
 
 	/**

@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application;
 
 use Nette;
-
 
 
 /**
@@ -24,25 +19,12 @@ class AbortException extends \Exception
 }
 
 
-
 /**
  * Application fatal error.
  */
 class ApplicationException extends \Exception
 {
-	/*5.2*
-	public function __construct($message = '', $code = 0, \Exception $previous = NULL)
-	{
-		if (PHP_VERSION_ID < 50300) {
-			$this->previous = $previous;
-			parent::__construct($message, $code);
-		} else {
-			parent::__construct($message, $code, $previous);
-		}
-	}
-	*/
 }
-
 
 
 /**
@@ -51,7 +33,6 @@ class ApplicationException extends \Exception
 class InvalidPresenterException extends \Exception
 {
 }
-
 
 
 /**
@@ -65,20 +46,10 @@ class BadRequestException extends \Exception
 
 	public function __construct($message = '', $code = 0, \Exception $previous = NULL)
 	{
-		if ($code < 200 || $code > 504) {
-			$code = $this->defaultCode;
-		}
-
-		/*5.2*if (PHP_VERSION_ID < 50300) {
-			$this->previous = $previous;
-			parent::__construct($message, $code);
-		} else*/ {
-			parent::__construct($message, $code, $previous);
-		}
+		parent::__construct($message, $code < 200 || $code > 504 ? $this->defaultCode : $code, $previous);
 	}
 
 }
-
 
 
 /**

@@ -4,17 +4,14 @@
  * Test: Nette\Caching\Storages\FileStorage & Nette\Callback & Closure.
  *
  * @author     David Grudl
- * @package    Nette\Caching
- * @phpversion 5.3
  */
 
 use Nette\Caching\Cache,
-	Nette\Caching\Storages\FileStorage;
-
+	Nette\Caching\Storages\FileStorage,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 // key and data with special chars
@@ -23,7 +20,7 @@ $value = range("\x00", "\xFF");
 
 $cache = new Cache(new FileStorage(TEMP_DIR));
 
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );
 
 
 // Writing cache using Closure...
@@ -31,9 +28,9 @@ $res = $cache->save($key, function() use ($value) {
 	return $value;
 });
 
-Assert::true( $res === $value, 'Is result ok?' );
+Assert::same( $res, $value );
 
-Assert::true( $cache->load($key) === $value, 'Is cache ok?' );
+Assert::same( $cache->load($key), $value );
 
 
 // Removing from cache using unset()...
@@ -44,9 +41,9 @@ $res = $cache->save($key, new Nette\Callback(function() use ($value) {
 	return $value;
 }));
 
-Assert::true( $res === $value, 'Is result ok?' );
+Assert::same( $res, $value );
 
-Assert::true( $cache->load($key) === $value, 'Is cache ok?' );
+Assert::same( $cache->load($key), $value );
 
 
 // Removing from cache using NULL callback...
@@ -54,4 +51,4 @@ $cache->save($key, function() {
 	return NULL;
 });
 
-Assert::false( isset($cache[$key]), 'Is cached?' );
+Assert::false( isset($cache[$key]) );

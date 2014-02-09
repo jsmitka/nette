@@ -4,14 +4,11 @@
  * Test: Nette\Object reference to property.
  *
  * @author     David Grudl
- * @package    Nette
  */
 
-
-
+use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestClass extends Nette\Object

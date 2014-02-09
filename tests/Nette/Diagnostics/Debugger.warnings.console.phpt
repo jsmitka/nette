@@ -4,22 +4,19 @@
  * Test: Nette\Diagnostics\Debugger notices and warnings in console.
  *
  * @author     David Grudl
- * @package    Nette\Diagnostics
  */
 
-use Nette\Diagnostics\Debugger;
-
+use Nette\Diagnostics\Debugger,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Debugger::$productionMode = FALSE;
 header('Content-Type: text/plain');
 
 Debugger::enable();
-
 
 
 function first($arg1, $arg2)

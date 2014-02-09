@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette;
@@ -14,9 +10,8 @@ namespace Nette;
 use Nette;
 
 
-
 /**
- * DateTime with serialization and timestamp support for PHP 5.2.
+ * DateTime.
  *
  * @author     David Grudl
  */
@@ -41,7 +36,6 @@ class DateTime extends \DateTime
 	const YEAR = 31557600;
 
 
-
 	/**
 	 * DateTime object factory.
 	 * @param  string|int|\DateTime
@@ -49,14 +43,15 @@ class DateTime extends \DateTime
 	 */
 	public static function from($time)
 	{
-		if ($time instanceof \DateTime) {
-			return new self($time->format('Y-m-d H:i:s'), $time->getTimezone());
+		if ($time instanceof \DateTime || $time instanceof \DateTimeInterface) {
+			return new static($time->format('Y-m-d H:i:s'), $time->getTimezone());
 
 		} elseif (is_numeric($time)) {
 			if ($time <= self::YEAR) {
 				$time += time();
 			}
-			return new static(date('Y-m-d H:i:s', $time));
+			$tmp = new static('@' . $time);
+			return $tmp->setTimeZone(new \DateTimeZone(date_default_timezone_get()));
 
 		} else { // textual or NULL
 			return new static($time);
@@ -64,12 +59,10 @@ class DateTime extends \DateTime
 	}
 
 
-
 	public function __toString()
 	{
 		return $this->format('Y-m-d H:i:s');
 	}
-
 
 
 	public function modifyClone($modify = '')
@@ -79,53 +72,18 @@ class DateTime extends \DateTime
 	}
 
 
-
-	/*5.2*
-	public function modify($modify)
+	public function setTimestamp($timestamp)
 	{
-		parent::modify($modify);
-		return $this;
+		$zone = $this->getTimezone();
+		$this->__construct('@' . $timestamp);
+		return $this->setTimeZone($zone);
 	}
-
-
-
-	public static function __set_state($state)
-	{
-		return new self($state['date'], new \DateTimeZone($state['timezone']));
-	}
-
-
-
-	public function __sleep()
-	{
-		$this->fix = array($this->format('Y-m-d H:i:s'), $this->getTimezone()->getName());
-		return array('fix');
-	}
-
-
-
-	public function __wakeup()
-	{
-		$this->__construct($this->fix[0], new \DateTimeZone($this->fix[1]));
-		unset($this->fix);
-	}
-
 
 
 	public function getTimestamp()
 	{
-		return (int) $this->format('U');
+		$ts = $this->format('U');
+		return is_float($tmp = $ts * 1) ? $ts : $tmp;
 	}
-
-
-
-	public function setTimestamp($timestamp)
-	{
-		return $this->__construct(
-			gmdate('Y-m-d H:i:s', $timestamp + $this->getOffset()),
-			new \DateTimeZone($this->getTimezone()->getName()) // simply getTimezone() crashes in PHP 5.2.6
-		);
-	}
-	*/
 
 }

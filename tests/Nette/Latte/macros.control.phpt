@@ -4,19 +4,16 @@
  * Test: Nette\Latte\Engine: {control ...}
  *
  * @author     David Grudl
- * @package    Nette\Latte
- * @keepTrailingSpaces
  */
 
 use Nette\Latte,
-	Nette\Object;
-
+	Nette\Object,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 require __DIR__ . '/Template.inc';
-
 
 
 class MockComponent extends Object
@@ -31,7 +28,6 @@ class MockComponent extends Object
 }
 
 
-
 class MockControl extends Object
 {
 
@@ -42,7 +38,6 @@ class MockControl extends Object
 	}
 
 }
-
 
 
 $template = new Nette\Templating\Template;

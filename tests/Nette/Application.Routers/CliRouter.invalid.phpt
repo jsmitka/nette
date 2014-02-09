@@ -4,16 +4,14 @@
  * Test: Nette\Application\Routers\CliRouter invalid argument
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
 use Nette\Http,
-	Nette\Application\Routers\CliRouter;
-
+	Nette\Application\Routers\CliRouter,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $_SERVER['argv'] = 1;

@@ -4,15 +4,13 @@
  * Test: Nette\DI\Container circular reference detection.
  *
  * @author     David Grudl
- * @package    Nette\DI
  */
 
-use Nette\DI\Container;
-
+use Nette\DI\Container,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class MyContainer extends Container
@@ -20,16 +18,15 @@ class MyContainer extends Container
 
 	protected function createServiceOne()
 	{
-		return $this->two;
+		return $this->getService('two');
 	}
 
 	protected function createServiceTwo()
 	{
-		return $this->one;
+		return $this->getService('one');
 	}
 
 }
-
 
 
 $container = new MyContainer;

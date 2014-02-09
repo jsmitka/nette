@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\Responses;
 
 use Nette;
-
 
 
 /**
@@ -56,38 +51,34 @@ class FileResponse extends Nette\Object implements Nette\Application\IResponse
 	}
 
 
-
 	/**
 	 * Returns the path to a downloaded file.
 	 * @return string
 	 */
-	final public function getFile()
+	public function getFile()
 	{
 		return $this->file;
 	}
-
 
 
 	/**
 	 * Returns the file name.
 	 * @return string
 	 */
-	final public function getName()
+	public function getName()
 	{
 		return $this->name;
 	}
-
 
 
 	/**
 	 * Returns the MIME content type of a downloaded file.
 	 * @return string
 	 */
-	final public function getContentType()
+	public function getContentType()
 	{
 		return $this->contentType;
 	}
-
 
 
 	/**

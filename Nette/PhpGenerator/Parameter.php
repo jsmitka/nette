@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\PhpGenerator;
@@ -14,31 +10,35 @@ namespace Nette\PhpGenerator;
 use Nette;
 
 
-
 /**
  * Method parameter description.
  *
  * @author     David Grudl
  *
- * @method Parameter setName(string $name)
- * @method Parameter setReference(bool $on)
- * @method Parameter setTypeHint(string $class)
- * @method Parameter setOptional(bool $on)
- * @method Parameter setDefaultValue(mixed $value)
+ * @method Parameter setName(string)
+ * @method string getName()
+ * @method Parameter setReference(bool)
+ * @method bool isReference()
+ * @method Parameter setTypeHint(string)
+ * @method string getTypeHint()
+ * @method Parameter setOptional(bool)
+ * @method bool isOptional()
+ * @method Parameter setDefaultValue(mixed)
+ * @method mixed getDefaultValue()
  */
 class Parameter extends Nette\Object
 {
 	/** @var string */
-	public $name;
+	private $name;
 
 	/** @var bool */
-	public $reference;
+	private $reference;
 
 	/** @var string */
-	public $typeHint;
+	private $typeHint;
 
 	/** @var bool */
-	public $optional;
+	private $optional;
 
 	/** @var mixed */
 	public $defaultValue;
@@ -62,19 +62,12 @@ class Parameter extends Nette\Object
 		$param->optional = PHP_VERSION_ID < 50407 ? $from->isOptional() || ($param->typeHint && $from->allowsNull()) : $from->isDefaultValueAvailable();
 		$param->defaultValue = (PHP_VERSION_ID === 50316 ? $from->isOptional() : $from->isDefaultValueAvailable()) ? $from->getDefaultValue() : NULL;
 
-		$namespace = /*5.2*PHP_VERSION_ID < 50300 ? '' : */$from->getDeclaringClass()->getNamespaceName();
+		$namespace = $from->getDeclaringClass()->getNamespaceName();
 		$namespace = $namespace ? "\\$namespace\\" : "\\";
 		if (Nette\Utils\Strings::startsWith($param->typeHint, $namespace)) {
 			$param->typeHint = substr($param->typeHint, strlen($namespace));
 		}
 		return $param;
-	}
-
-
-
-	public function __call($name, $args)
-	{
-		return Nette\ObjectMixin::callProperty($this, $name, $args);
 	}
 
 }

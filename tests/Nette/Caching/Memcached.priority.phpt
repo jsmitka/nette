@@ -4,20 +4,19 @@
  * Test: Nette\Caching\Storages\MemcachedStorage priority test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Storages\MemcachedStorage,
 	Nette\Caching\Storages\FileJournal,
-	Nette\Caching\Cache;
-
+	Nette\Caching\Cache,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
 if (!MemcachedStorage::isAvailable()) {
-	Tester\Helpers::skip('Requires PHP extension Memcache.');
+	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
 
 
@@ -46,7 +45,7 @@ $cache->clean(array(
 	Cache::PRIORITY => '200',
 ));
 
-Assert::false( isset($cache['nette-priority-key1']), 'Is cached nette-priority-key1?' );
-Assert::false( isset($cache['nette-priority-key2']), 'Is cached nette-priority-key2?' );
-Assert::true( isset($cache['nette-priority-key3']), 'Is cached nette-priority-key3?' );
-Assert::true( isset($cache['nette-priority-key4']), 'Is cached nette-priority-key4?' );
+Assert::false( isset($cache['nette-priority-key1']) );
+Assert::false( isset($cache['nette-priority-key2']) );
+Assert::true( isset($cache['nette-priority-key3']) );
+Assert::true( isset($cache['nette-priority-key4']) );

@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Caching\Storages;
 
 use Nette,
 	Nette\Caching\Cache;
-
 
 
 /**
@@ -68,7 +63,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 	private $locks;
 
 
-
 	public function __construct($dir, IJournal $journal = NULL)
 	{
 		$this->dir = realpath($dir);
@@ -83,7 +77,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 			$this->clean(array());
 		}
 	}
-
 
 
 	/**
@@ -101,7 +94,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 			return NULL;
 		}
 	}
-
 
 
 	/**
@@ -144,7 +136,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 	}
 
 
-
 	/**
 	 * Prevents item reading and writing. Lock is released by write() or remove().
 	 * @param  string key
@@ -167,7 +158,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 		$this->locks[$key] = $handle;
 		flock($handle, LOCK_EX);
 	}
-
 
 
 	/**
@@ -257,7 +247,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 	}
 
 
-
 	/**
 	 * Removes item from the cache.
 	 * @param  string key
@@ -268,7 +257,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 		unset($this->locks[$key]);
 		$this->delete($this->getCacheFile($key));
 	}
-
 
 
 	/**
@@ -326,7 +314,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 	}
 
 
-
 	/**
 	 * Reads cache data from disk.
 	 * @param  string  file path
@@ -348,7 +335,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 			$meta = stream_get_contents($handle, $size, self::META_HEADER_LEN);
 			$meta = @unserialize($meta); // intentionally @
 			if (is_array($meta)) {
-				fseek($handle, $size + self::META_HEADER_LEN); // needed by PHP < 5.2.6
 				$meta[self::FILE] = $file;
 				$meta[self::HANDLE] = $handle;
 				return $meta;
@@ -359,7 +345,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 		fclose($handle);
 		return NULL;
 	}
-
 
 
 	/**
@@ -381,7 +366,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 	}
 
 
-
 	/**
 	 * Returns file name.
 	 * @param  string
@@ -395,7 +379,6 @@ class FileStorage extends Nette\Object implements Nette\Caching\IStorage
 		}
 		return $this->dir . '/_' . $file;
 	}
-
 
 
 	/**

@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Forms\Controls;
@@ -14,71 +10,40 @@ namespace Nette\Forms\Controls;
 use Nette;
 
 
-
 /**
- * Select box control that allows multiple item selection.
+ * Select box control that allows multiple items selection.
  *
  * @author     David Grudl
  */
-class MultiSelectBox extends SelectBox
+class MultiSelectBox extends MultiChoiceControl
 {
+	/** @var array of option / optgroup */
+	private $options = array();
 
 
 	/**
-	 * Returns selected keys.
-	 * @return array
+	 * Sets options and option groups from which to choose.
+	 * @return self
 	 */
-	public function getValue()
+	public function setItems(array $items, $useKeys = TRUE)
 	{
-		return array_values(array_intersect($this->getRawValue(), array_keys($this->allowed)));
-	}
-
-
-
-	/**
-	 * Returns selected keys (not checked).
-	 * @return array
-	 */
-	public function getRawValue()
-	{
-		if (is_scalar($this->value)) {
-			return array($this->value);
-
-		} else {
+		if (!$useKeys) {
 			$res = array();
-			foreach ((array) $this->value as $val) {
-				if (is_scalar($val)) {
-					$res[] = $val;
+			foreach ($items as $key => $value) {
+				unset($items[$key]);
+				if (is_array($value)) {
+					foreach ($value as $val) {
+						$res[$key][(string) $val] = $val;
+					}
+				} else {
+					$res[(string) $value] = $value;
 				}
 			}
-			return $res;
+			$items = $res;
 		}
+		$this->options = $items;
+		return parent::setItems(Nette\Utils\Arrays::flatten($items, TRUE));
 	}
-
-
-
-	/**
-	 * Returns selected values.
-	 * @return array
-	 */
-	public function getSelectedItem()
-	{
-		return $this->areKeysUsed()
-			? array_intersect_key($this->allowed, array_flip($this->getValue()))
-			: $this->getValue();
-	}
-
-
-
-	/**
-	 * Returns HTML name of control.
-	 * @return string
-	 */
-	public function getHtmlName()
-	{
-		return parent::getHtmlName() . '[]';
-	}
-
 
 
 	/**
@@ -87,24 +52,26 @@ class MultiSelectBox extends SelectBox
 	 */
 	public function getControl()
 	{
-		return parent::getControl()->multiple(TRUE);
+		$items = array();
+		foreach ($this->options as $key => $value) {
+			$items[is_array($value) ? $this->translate($key) : $key] = $this->translate($value);
+		}
+
+		return Nette\Forms\Helpers::createSelectBox(
+			$items,
+			array(
+				'selected?' => $this->value,
+				'disabled:' => is_array($this->disabled) ? $this->disabled : NULL
+			)
+		)->addAttributes(parent::getControl()->attrs)->multiple(TRUE);
 	}
 
 
-
-	/**
-	 * Count/length validator.
-	 * @param  MultiSelectBox
-	 * @param  array  min and max length pair
-	 * @return bool
-	 */
-	public static function validateLength(MultiSelectBox $control, $range)
+	/** @deprecated */
+	function getSelectedItem()
 	{
-		if (!is_array($range)) {
-			$range = array($range, $range);
-		}
-		$count = count($control->getSelectedItem());
-		return ($range[0] === NULL || $count >= $range[0]) && ($range[1] === NULL || $count <= $range[1]);
+		trigger_error(__METHOD__ . '(TRUE) is deprecated; use getSelectedItems() instead.', E_USER_DEPRECATED);
+		return $this->getSelectedItems();
 	}
 
 }

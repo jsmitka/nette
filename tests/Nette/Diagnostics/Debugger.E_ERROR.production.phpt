@@ -4,16 +4,20 @@
  * Test: Nette\Diagnostics\Debugger E_ERROR in production mode.
  *
  * @author     David Grudl
- * @package    Nette\Diagnostics
- * @assertCode 500
+ * @httpCode   500
+ * @exitCode   255
+ * @outputMatch %A%<h1>Server Error</h1>%A%
  */
 
-use Nette\Diagnostics\Debugger;
-
+use Nette\Diagnostics\Debugger,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
+if (PHP_SAPI === 'cli') {
+	Tester\Environment::skip('Debugger Bluescreen is not rendered in CLI mode');
+}
 
 
 Debugger::$productionMode = TRUE;
@@ -21,11 +25,4 @@ header('Content-Type: text/html');
 
 Debugger::enable();
 
-Debugger::$onFatalError[] = function() {
-	Assert::match('%A%<h1>Server Error</h1>%A%', ob_get_clean());
-	die(0);
-};
-ob_start();
-
-
-missing_funcion();
+missing_function();

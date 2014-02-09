@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Reflection;
 
 use Nette,
 	Nette\ObjectMixin;
-
 
 
 /**
@@ -67,15 +62,13 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/**
-	 * @return Nette\Callback
+	 * @deprecated
 	 */
 	public function toCallback()
 	{
 		return new Nette\Callback(parent::getDeclaringClass()->getName(), $this->getName());
 	}
-
 
 
 	public function __toString()
@@ -84,9 +77,7 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/********************* Reflection layer ****************d*g**/
-
 
 
 	/**
@@ -96,7 +87,6 @@ class Method extends \ReflectionMethod
 	{
 		return new ClassType(parent::getDeclaringClass()->getName());
 	}
-
 
 
 	/**
@@ -109,7 +99,6 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/**
 	 * @return Extension
 	 */
@@ -117,7 +106,6 @@ class Method extends \ReflectionMethod
 	{
 		return ($name = $this->getExtensionName()) ? new Extension($name) : NULL;
 	}
-
 
 
 	/**
@@ -133,9 +121,7 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/********************* Nette\Annotations support ****************d*g**/
-
 
 
 	/**
@@ -150,7 +136,6 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/**
 	 * Returns an annotation value.
 	 * @param  string
@@ -163,7 +148,6 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/**
 	 * Returns all annotations.
 	 * @return IAnnotation[][]
@@ -172,7 +156,6 @@ class Method extends \ReflectionMethod
 	{
 		return AnnotationsParser::getAll($this);
 	}
-
 
 
 	/**
@@ -185,19 +168,7 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	/********************* Nette\Object behaviour ****************d*g**/
-
-
-
-	/**
-	 * @return ClassType
-	 */
-	public /**/static/**/ function getReflection()
-	{
-		return new ClassType(/*5.2*$this*//**/get_called_class()/**/);
-	}
-
 
 
 	public function __call($name, $args)
@@ -206,26 +177,22 @@ class Method extends \ReflectionMethod
 	}
 
 
-
 	public function &__get($name)
 	{
 		return ObjectMixin::get($this, $name);
 	}
 
 
-
 	public function __set($name, $value)
 	{
-		return ObjectMixin::set($this, $name, $value);
+		ObjectMixin::set($this, $name, $value);
 	}
-
 
 
 	public function __isset($name)
 	{
 		return ObjectMixin::has($this, $name);
 	}
-
 
 
 	public function __unset($name)

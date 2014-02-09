@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\Responses;
 
 use Nette,
 	Nette\Http;
-
 
 
 /**
@@ -33,7 +28,6 @@ class RedirectResponse extends Nette\Object implements Nette\Application\IRespon
 	private $code;
 
 
-
 	/**
 	 * @param  string  URI
 	 * @param  int     HTTP code 3xx
@@ -45,25 +39,22 @@ class RedirectResponse extends Nette\Object implements Nette\Application\IRespon
 	}
 
 
-
 	/**
 	 * @return string
 	 */
-	final public function getUrl()
+	public function getUrl()
 	{
 		return $this->url;
 	}
 
 
-
 	/**
 	 * @return int
 	 */
-	final public function getCode()
+	public function getCode()
 	{
 		return $this->code;
 	}
-
 
 
 	/**

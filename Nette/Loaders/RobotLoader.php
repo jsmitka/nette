@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Loaders;
 
 use Nette,
 	Nette\Caching\Cache;
-
 
 
 /**
@@ -24,7 +19,7 @@ use Nette,
  * @property-read array $indexedClasses
  * @property   Nette\Caching\IStorage $cacheStorage
  */
-class RobotLoader extends AutoLoader
+class RobotLoader extends Nette\Object
 {
 	const RETRY_LIMIT = 3;
 
@@ -59,7 +54,6 @@ class RobotLoader extends AutoLoader
 	private $phpCacheStorage;
 
 
-
 	public function __construct()
 	{
 		if (!extension_loaded('tokenizer')) {
@@ -68,19 +62,17 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * Register autoloader.
 	 * @param  bool  prepend autoloader?
-	 * @return RobotLoader  provides a fluent interface
+	 * @return self
 	 */
-	public function register(/**/$prepend = FALSE/**/)
+	public function register($prepend = FALSE)
 	{
-		$this->classes = $this->getCache()->load($this->getKey(), new Nette\Callback($this, '_rebuildCallback'));
-		parent::register(/**/$prepend/**/);
+		$this->classes = $this->getCache()->load($this->getKey(), array($this, '_rebuildCallback'));
+		spl_autoload_register(array($this, 'tryLoad'), TRUE, (bool) $prepend);
 		return $this;
 	}
-
 
 
 	/**
@@ -117,24 +109,21 @@ class RobotLoader extends AutoLoader
 		}
 
 		if (isset($this->classes[$type]['file'])) {
-			if (empty($this->classes[$type]['filter'])) {
-				Nette\Utils\LimitedScope::load($this->classes[$type]['file'], TRUE);
-			} else {
-				$item = $this->getPhpCache()->load($this->classes[$type]['file']);
-				Nette\Utils\LimitedScope::load($item['file'], TRUE);
+			$info = $this->classes[$type];
+			if (!empty($info['filter'])) {
+				$info = $this->getPhpCache()->load($info['file']);
 			}
-			self::$count++;
+			call_user_func(function($file) { require $file; }, $info['file']);
 		} else {
 			$this->missing[$type] = TRUE;
 		}
 	}
 
 
-
 	/**
 	 * Add directory (or directories) to list.
 	 * @param  string|array
-	 * @return RobotLoader  provides a fluent interface
+	 * @return self
 	 * @throws Nette\DirectoryNotFoundException if path is not found
 	 */
 	public function addDirectory($path)
@@ -150,21 +139,19 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * @return array of class => filename
 	 */
 	public function getIndexedClasses()
 	{
 		$res = array();
-		foreach ($this->classes as $class => $info) {
+		foreach ($this->classes as $info) {
 			if (is_array($info)) {
 				$res[$info['orig']] = $info['file'];
 			}
 		}
 		return $res;
 	}
-
 
 
 	/**
@@ -174,9 +161,8 @@ class RobotLoader extends AutoLoader
 	public function rebuild()
 	{
 		$this->rebuilt = TRUE; // prevents calling rebuild() or updateFile() in tryLoad()
-		$this->getCache()->save($this->getKey(), new Nette\Callback($this, '_rebuildCallback'));
+		$this->getCache()->save($this->getKey(), Nette\Utils\Callback::closure($this, '_rebuildCallback'));
 	}
-
 
 
 	/**
@@ -223,7 +209,6 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * Creates an iterator scaning directory for PHP files, subdirectories and 'netterobots.txt' files.
 	 * @return \Iterator
@@ -243,12 +228,12 @@ class RobotLoader extends AutoLoader
 		}
 
 		$iterator = Nette\Utils\Finder::findFiles(array_map(function($ext) { return "*.$ext"; }, array_keys($this->filters)))
-			->filter(function($file) use (&$disallow){
+			->filter(function($file) use (& $disallow) {
 				return !isset($disallow[$file->getPathname()]);
 			})
 			->from($dir)
 			->exclude($ignoreDirs)
-			->filter($filter = function($dir) use (&$disallow){
+			->filter($filter = function($dir) use (& $disallow) {
 				$path = $dir->getPathname();
 				if (is_file("$path/netterobots.txt")) {
 					foreach (file("$path/netterobots.txt") as $s) {
@@ -263,7 +248,6 @@ class RobotLoader extends AutoLoader
 		$filter(new \SplFileInfo($dir));
 		return $iterator;
 	}
-
 
 
 	/**
@@ -300,7 +284,6 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * @return array [classes, filtered?]
 	 */
@@ -319,7 +302,6 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * Searches classes, interfaces and traits in PHP file.
 	 * @param  string
@@ -327,8 +309,6 @@ class RobotLoader extends AutoLoader
 	 */
 	private function scanPhp($code)
 	{
-		$T_NAMESPACE = PHP_VERSION_ID < 50300 ? -1 : T_NAMESPACE;
-		$T_NS_SEPARATOR = PHP_VERSION_ID < 50300 ? -1 : T_NS_SEPARATOR;
 		$T_TRAIT = PHP_VERSION_ID < 50400 ? -1 : T_TRAIT;
 
 		$expected = FALSE;
@@ -346,44 +326,44 @@ class RobotLoader extends AutoLoader
 		foreach (@token_get_all($code) as $token) { // intentionally @
 			if (is_array($token)) {
 				switch ($token[0]) {
-				case T_COMMENT:
-				case T_DOC_COMMENT:
-				case T_WHITESPACE:
-					continue 2;
+					case T_COMMENT:
+					case T_DOC_COMMENT:
+					case T_WHITESPACE:
+						continue 2;
 
-				case $T_NS_SEPARATOR:
-				case T_STRING:
-					if ($expected) {
-						$name .= $token[1];
-					}
-					continue 2;
+					case T_NS_SEPARATOR:
+					case T_STRING:
+						if ($expected) {
+							$name .= $token[1];
+						}
+						continue 2;
 
-				case $T_NAMESPACE:
-				case T_CLASS:
-				case T_INTERFACE:
-				case $T_TRAIT:
-					$expected = $token[0];
-					$name = '';
-					continue 2;
-				case T_CURLY_OPEN:
-				case T_DOLLAR_OPEN_CURLY_BRACES:
-					$level++;
+					case T_NAMESPACE:
+					case T_CLASS:
+					case T_INTERFACE:
+					case $T_TRAIT:
+						$expected = $token[0];
+						$name = '';
+						continue 2;
+					case T_CURLY_OPEN:
+					case T_DOLLAR_OPEN_CURLY_BRACES:
+						$level++;
 				}
 			}
 
 			if ($expected) {
 				switch ($expected) {
-				case T_CLASS:
-				case T_INTERFACE:
-				case $T_TRAIT:
-					if ($level === $minLevel) {
-						$classes[] = $namespace . $name;
-					}
-					break;
+					case T_CLASS:
+					case T_INTERFACE:
+					case $T_TRAIT:
+						if ($level === $minLevel) {
+							$classes[] = $namespace . $name;
+						}
+						break;
 
-				case $T_NAMESPACE:
-					$namespace = $name ? $name . '\\' : '';
-					$minLevel = $token === '{' ? 1 : 0;
+					case T_NAMESPACE:
+						$namespace = $name ? $name . '\\' : '';
+						$minLevel = $token === '{' ? 1 : 0;
 				}
 
 				$expected = NULL;
@@ -399,9 +379,7 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/********************* backend ****************d*g**/
-
 
 
 	/**
@@ -415,7 +393,6 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * @return Nette\Caching\IStorage
 	 */
@@ -423,7 +400,6 @@ class RobotLoader extends AutoLoader
 	{
 		return $this->cacheStorage;
 	}
-
 
 
 	/**
@@ -439,7 +415,6 @@ class RobotLoader extends AutoLoader
 	}
 
 
-
 	/**
 	 * @return Nette\Caching\Cache
 	 */
@@ -447,7 +422,6 @@ class RobotLoader extends AutoLoader
 	{
 		return new Cache($this->phpCacheStorage, 'Nette.RobotLoader.filters');
 	}
-
 
 
 	/**

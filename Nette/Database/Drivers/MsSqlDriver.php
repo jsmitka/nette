@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Database\Drivers;
 
 use Nette;
-
 
 
 /**
@@ -26,16 +21,13 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	private $connection;
 
 
-
 	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 	}
 
 
-
 	/********************* SQL ****************d*g**/
-
 
 
 	/**
@@ -48,7 +40,6 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Formats boolean for use in a SQL statement.
 	 */
@@ -58,15 +49,13 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(\DateTime $value)
+	public function formatDateTime(/*\DateTimeInterface*/ $value)
 	{
 		return $value->format("'Y-m-d H:i:s'");
 	}
-
 
 
 	/**
@@ -79,35 +68,34 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Injects LIMIT/OFFSET to the SQL query.
 	 */
-	public function applyLimit(&$sql, $limit, $offset)
+	public function applyLimit(& $sql, $limit, $offset)
 	{
 		if ($limit >= 0) {
-			$sql = 'SELECT TOP ' . (int) $limit . ' * FROM (' . $sql . ') t';
+			$sql = preg_replace('#^\s*(SELECT|UPDATE|DELETE)#i', '$0 TOP ' . (int) $limit, $sql, 1, $count);
+			if (!$count) {
+				throw new Nette\InvalidArgumentException('SQL query must begin with SELECT, UPDATE or DELETE command.');
+			}
 		}
 
 		if ($offset) {
-			throw new Nette\NotImplementedException('Offset is not implemented.');
+			throw new Nette\NotSupportedException('Offset is not supported by this database.');
 		}
 	}
-
 
 
 	/**
 	 * Normalizes result row.
 	 */
-	public function normalizeRow($row, $statement)
+	public function normalizeRow($row)
 	{
 		return $row;
 	}
 
 
-
 	/********************* reflection ****************d*g**/
-
 
 
 	/**
@@ -119,7 +107,6 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Returns metadata for all columns in a table.
 	 */
@@ -127,7 +114,6 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	{
 		throw new Nette\NotImplementedException;
 	}
-
 
 
 	/**
@@ -139,7 +125,6 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
-
 	/**
 	 * Returns metadata for all foreign keys in a table.
 	 */
@@ -149,13 +134,21 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 	}
 
 
+	/**
+	 * Returns associative array of detected types (IReflection::FIELD_*) in result set.
+	 */
+	public function getColumnTypes(\PDOStatement $statement)
+	{
+		return Nette\Database\Helpers::detectTypes($statement);
+	}
+
 
 	/**
 	 * @return bool
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::SUPPORT_COLUMNS_META;
+		return $item === self::SUPPORT_SUBSELECT;
 	}
 
 }

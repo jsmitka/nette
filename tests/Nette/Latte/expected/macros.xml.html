@@ -7,22 +7,21 @@
 	<li>Escaped expression: &lt;b&gt;hello&lt;/b&gt;</li>
 	<li>Non-escaped expression: <b>hello</b></li>
 	<li>Array access: Mary</li>
-	<li>Html: &lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;</li>
+	<li>Html: &lt;div title=&#039;1/2&quot;&#039;&gt;&lt;/div&gt;</li>
 </ul>
 
 <style type="text/css">
 <!--
-#:/item {
+# :/item {
 	background: blue;
 }
 -->
 </style>
 
 
-
 <script>
 <!--
-var html = &lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;;
+var html =  <div title='1/2"'></div>;
 -->
 </script>
 
@@ -32,12 +31,12 @@ var html = &lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;;
  title=':/item"'
  style =
  "color::/item;'"
- alt='&lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;'
- onfocus="alert(&lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;)"
+ alt='&lt;div title=&#039;1/2&quot;&#039;&gt;&lt;/div&gt;'
+ onfocus="alert(&lt;div title=&#039;1/2&quot;&#039;&gt;&lt;/div&gt;)"
 >click on me</p>
 
 
-<!-- test -- comment -->
+<!--  test - -  comment -->
 
 
 </ul>
@@ -47,7 +46,7 @@ var html = &lt;div title=&quot;1/2&amp;quot;&quot;&gt;&lt;/div&gt;;
 	<li>John</li>
 	<li>Mary</li>
 	<li>Paul</li>
-	<li>]]&gt;</li>
+	<li>]]&gt; &lt;!--</li>
 </ul>
 
 <p>

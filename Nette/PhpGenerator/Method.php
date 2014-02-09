@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\PhpGenerator;
@@ -14,52 +10,63 @@ namespace Nette\PhpGenerator;
 use Nette;
 
 
-
 /**
  * Class method description.
  *
  * @author     David Grudl
  *
- * @method Method setName(string $name)
- * @method Method setBody(string $body)
- * @method Method setStatic(bool $on)
- * @method Method setVisibility(string $access)
- * @method Method setFinal(bool $on)
- * @method Method setAbstract(bool $on)
- * @method Method setReturnReference(bool $on)
- * @method Method addDocument(string $doc)
+ * @method Method setName(string)
+ * @method string getName()
+ * @method Method setParameters(Parameter[])
+ * @method Parameter[] getParameters()
+ * @method Method setUses(array)
+ * @method array getUses()
+ * @method string getBody()
+ * @method Method setStatic(bool)
+ * @method bool isStatic()
+ * @method Method setVisibility(string)
+ * @method string getVisibility()
+ * @method Method setFinal(bool)
+ * @method bool isFinal()
+ * @method Method setAbstract(bool)
+ * @method bool isAbstract()
+ * @method Method setReturnReference(bool)
+ * @method bool getReturnReference()
+ * @method Method setDocuments(string[])
+ * @method string[] getDocuments()
+ * @method Method addDocument(string)
  */
 class Method extends Nette\Object
 {
 	/** @var string */
-	public $name;
+	private $name;
 
 	/** @var array of name => Parameter */
-	public $parameters = array();
+	private $parameters = array();
 
 	/** @var array of name => bool */
-	public $uses = array();
+	private $uses = array();
 
 	/** @var string|FALSE */
-	public $body;
+	private $body;
 
 	/** @var bool */
-	public $static;
+	private $static;
 
 	/** @var string  public|protected|private or none */
-	public $visibility;
+	private $visibility;
 
 	/** @var bool */
-	public $final;
+	private $final;
 
 	/** @var bool */
-	public $abstract;
+	private $abstract;
 
 	/** @var bool */
-	public $returnReference;
+	private $returnReference;
 
 	/** @var array of string */
-	public $documents = array();
+	private $documents = array();
 
 
 	/** @return Method */
@@ -82,7 +89,6 @@ class Method extends Nette\Object
 	}
 
 
-
 	/** @return Parameter */
 	public function addParameter($name, $defaultValue = NULL)
 	{
@@ -94,14 +100,12 @@ class Method extends Nette\Object
 	}
 
 
-
 	/** @return Parameter */
 	public function addUse($name)
 	{
 		$param = new Parameter;
 		return $this->uses[] = $param->setName($name);
 	}
-
 
 
 	/** @return Method */
@@ -112,21 +116,12 @@ class Method extends Nette\Object
 	}
 
 
-
 	/** @return Method */
 	public function addBody($statement, array $args = NULL)
 	{
 		$this->body .= (func_num_args() > 1 ? Helpers::formatArgs($statement, $args) : $statement) . "\n";
 		return $this;
 	}
-
-
-
-	public function __call($name, $args)
-	{
-		return Nette\ObjectMixin::callProperty($this, $name, $args);
-	}
-
 
 
 	/** @return string  PHP code */

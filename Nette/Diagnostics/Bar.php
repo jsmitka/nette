@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Diagnostics;
 
 use Nette;
-
 
 
 /**
@@ -26,12 +21,11 @@ class Bar extends Nette\Object
 	private $panels = array();
 
 
-
 	/**
 	 * Add custom panel.
 	 * @param  IBarPanel
 	 * @param  string
-	 * @return Bar  provides a fluent interface
+	 * @return self
 	 */
 	public function addPanel(IBarPanel $panel, $id = NULL)
 	{
@@ -46,7 +40,6 @@ class Bar extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns panel with given id
 	 * @param  string
@@ -56,7 +49,6 @@ class Bar extends Nette\Object
 	{
 		return isset($this->panels[$id]) ? $this->panels[$id] : NULL;
 	}
-
 
 
 	/**
@@ -78,7 +70,7 @@ class Bar extends Nette\Object
 				$panels[] = array(
 					'id' => "error-" . preg_replace('#[^a-z0-9]+#i', '-', $id),
 					'tab' => "Error in $id",
-					'panel' => '<h1>Error: ' . $id . '</h1><div class="nette-inner">' . nl2br(htmlSpecialChars($e)) . '</div>',
+					'panel' => '<h1>Error: ' . $id . '</h1><div class="nette-inner">' . nl2br(htmlSpecialChars($e, ENT_IGNORE)) . '</div>',
 				);
 				while (ob_get_level() > $obLevel) { // restore ob-level if broken
 					ob_end_clean();

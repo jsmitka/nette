@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\ComponentModel;
 
 use Nette;
-
 
 
 /**
@@ -31,9 +26,7 @@ class Container extends Component implements IContainer
 	private $cloning;
 
 
-
 	/********************* interface IContainer ****************d*g**/
-
 
 
 	/**
@@ -41,7 +34,7 @@ class Container extends Component implements IContainer
 	 * @param  IComponent
 	 * @param  string
 	 * @param  string
-	 * @return Container  provides a fluent interface
+	 * @return self
 	 * @throws Nette\InvalidStateException
 	 */
 	public function addComponent(IComponent $component, $name, $insertBefore = NULL)
@@ -99,7 +92,6 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/**
 	 * Removes a component from the IContainer.
 	 * @return void
@@ -116,14 +108,13 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/**
 	 * Returns component specified by name or path.
 	 * @param  string
 	 * @param  bool   throw exception if component doesn't exist?
 	 * @return IComponent|NULL
 	 */
-	final public function getComponent($name, $need = TRUE)
+	public function getComponent($name, $need = TRUE)
 	{
 		if (is_int($name)) {
 			$name = (string) $name;
@@ -139,7 +130,10 @@ class Container extends Component implements IContainer
 			}
 
 			if ($name === '') {
-				throw new Nette\InvalidArgumentException("Component or subcomponent name must not be empty string.");
+				if ($need) {
+					throw new Nette\InvalidArgumentException("Component or subcomponent name must not be empty string.");
+				}
+				return;
 			}
 		}
 
@@ -167,7 +161,6 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/**
 	 * Component factory. Delegates the creation of components to a createComponent<Name> method.
 	 * @param  string      component name
@@ -188,14 +181,13 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/**
-	 * Iterates over a components.
+	 * Iterates over components.
 	 * @param  bool    recursive?
 	 * @param  string  class types filter
 	 * @return \ArrayIterator
 	 */
-	final public function getComponents($deep = FALSE, $filterType = NULL)
+	public function getComponents($deep = FALSE, $filterType = NULL)
 	{
 		$iterator = new RecursiveComponentIterator($this->components);
 		if ($deep) {
@@ -211,7 +203,6 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/**
 	 * Descendant can override this method to disallow insert a child by throwing an Nette\InvalidStateException.
 	 * @return void
@@ -222,9 +213,7 @@ class Container extends Component implements IContainer
 	}
 
 
-
 	/********************* cloneable, serializable ****************d*g**/
-
 
 
 	/**
@@ -242,7 +231,6 @@ class Container extends Component implements IContainer
 		}
 		parent::__clone();
 	}
-
 
 
 	/**

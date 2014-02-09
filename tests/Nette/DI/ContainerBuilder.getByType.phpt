@@ -4,15 +4,13 @@
  * Test: Nette\DI\ContainerBuilder and Container: getByType()
  *
  * @author     David Grudl
- * @package    Nette\DI
  */
 
-use Nette\DI;
-
+use Nette\DI,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class Service extends Nette\Object
@@ -35,7 +33,7 @@ $builder->addDefinition('two')
 $builder->prepareClassList();
 
 Assert::same( 'one', $builder->getByType('service') );
-Assert::same( NULL, $builder->getByType('unknown') );
+Assert::null( $builder->getByType('unknown') );
 Assert::exception(function() use ($builder) {
 	$builder->getByType('Nette\Object');
 }, 'Nette\DI\ServiceCreationException', 'Multiple services of type Nette\Object found: one, two');
@@ -48,8 +46,11 @@ require TEMP_DIR . '/code.php';
 
 $container = new Container;
 
-Assert::true( $container->getByType('service') instanceof Service );
-Assert::same( NULL, $container->getByType('unknown', FALSE) );
+Assert::type( 'Service', $container->getByType('service') );
+Assert::null( $container->getByType('unknown', FALSE) );
+
+Assert::same( array('one'), $container->findByType('service') );
+Assert::same( array(), $container->findByType('unknown') );
 
 Assert::exception(function() use ($container) {
 	$container->getByType('unknown');
@@ -57,4 +58,4 @@ Assert::exception(function() use ($container) {
 
 Assert::exception(function() use ($container) {
 	$container->getByType('Nette\Object');
-}, 'Nette\DI\MissingServiceException', 'Multiple services of type Nette\Object found.');
+}, 'Nette\DI\MissingServiceException', 'Multiple services of type Nette\Object found: one, two, container.');

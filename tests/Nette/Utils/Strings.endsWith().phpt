@@ -4,15 +4,13 @@
  * Test: Nette\Utils\Strings::endsWith()
  *
  * @author     David Grudl
- * @package    Nette\Utils
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::true( Strings::endsWith('123', NULL), "endsWith('123', NULL)" );

@@ -2,18 +2,13 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Latte\Macros;
 
 use Nette,
 	Nette\Latte;
-
 
 
 /**
@@ -27,7 +22,6 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 	private $used;
 
 
-
 	/**
 	 * Initializes before template parsing.
 	 * @return void
@@ -36,7 +30,6 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 	{
 		$this->used = FALSE;
 	}
-
 
 
 	/**
@@ -51,7 +44,6 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 	}
 
 
-
 	/**
 	 * New node is found.
 	 * @return bool
@@ -62,10 +54,9 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 		$node->isEmpty = FALSE;
 		$node->openingCode = Latte\PhpWriter::using($node)
 			->write('<?php if (Nette\Latte\Macros\CacheMacro::createCache($netteCacheStorage, %var, $_g->caches, %node.array?)) { ?>',
-				Nette\Utils\Strings::random()
+				Nette\Utils\Random::generate()
 			);
 	}
-
 
 
 	/**
@@ -78,9 +69,7 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 	}
 
 
-
 	/********************* run-time helpers ****************d*g**/
-
 
 
 	/**
@@ -92,7 +81,6 @@ class CacheMacro extends Nette\Object implements Latte\IMacro
 			end($global->caches)->dependencies[Nette\Caching\Cache::FILES][] = $template->getFile();
 		}
 	}
-
 
 
 	/**

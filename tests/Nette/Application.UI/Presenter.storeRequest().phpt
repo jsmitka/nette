@@ -4,18 +4,16 @@
  * Test: Nette\Application\UI\Presenter::storeRequest()
  *
  * @author     Matěj Koubík
- * @package    Nette\Application\UI
  */
 
 use Nette\Http,
 	Nette\Application,
 	Nette\DI,
-	Nette\Security;
-
+	Nette\Security,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestPresenter extends Application\UI\Presenter

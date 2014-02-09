@@ -4,12 +4,11 @@
  * Test: Nette\Http\Session error in session_start.
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
 use Nette\Http\Session,
-	Nette\Http\SessionSection;
-
+	Nette\Http\SessionSection,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
@@ -18,6 +17,7 @@ require __DIR__ . '/../bootstrap.php';
 $_COOKIE['PHPSESSID'] = '#';
 
 
-$container = id(new Nette\Config\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
+$container = id(new Nette\Configurator)->setTempDirectory(TEMP_DIR)->createContainer();
+$session = $container->getService('session');
 
-$session = $container->session->start();
+$session = $session->start();

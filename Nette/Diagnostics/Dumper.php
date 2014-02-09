@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Diagnostics;
 
 use Nette;
-
 
 
 /**
@@ -43,8 +38,11 @@ class Dumper
 	);
 
 	/** @var array */
-	public static $resources = array('stream' => 'stream_get_meta_data', 'stream-context' => 'stream_context_get_options', 'curl' => 'curl_getinfo');
-
+	public static $resources = array(
+		'stream' => 'stream_get_meta_data',
+		'stream-context' => 'stream_context_get_options',
+		'curl' => 'curl_getinfo',
+	);
 
 
 	/**
@@ -53,9 +51,9 @@ class Dumper
 	 */
 	public static function dump($var, array $options = NULL)
 	{
-		if (preg_match('#^Content-Type: text/html#im', implode("\n", headers_list()))) {
+		if (PHP_SAPI !== 'cli' && !preg_match('#^Content-Type: (?!text/html)#im', implode("\n", headers_list()))) {
 			echo self::toHtml($var, $options);
-		} elseif (self::$terminalColors && substr(getenv('TERM'), 0, 5) === 'xterm') {
+		} elseif (self::detectColors()) {
 			echo self::toTerminal($var, $options);
 		} else {
 			echo self::toText($var, $options);
@@ -64,26 +62,26 @@ class Dumper
 	}
 
 
-
 	/**
 	 * Dumps variable to HTML.
 	 * @return string
 	 */
 	public static function toHtml($var, array $options = NULL)
 	{
-		list($file, $line, $code) = empty($options[self::LOCATION]) ? NULL : self::findLocation();
+		$options = (array) $options + array(
+			self::DEPTH => 4,
+			self::TRUNCATE => 150,
+			self::COLLAPSE => FALSE,
+			self::COLLAPSE_COUNT => 7,
+			self::LOCATION => FALSE,
+		);
+		list($file, $line, $code) = $options[self::LOCATION] ? self::findLocation() : NULL;
 		return '<pre class="nette-dump"'
-			. ($file ? ' title="' . htmlspecialchars("$code\nin file $file on line $line") . '">' : '>')
-			. self::dumpVar($var, (array) $options + array(
-				self::DEPTH => 4,
-				self::TRUNCATE => 150,
-				self::COLLAPSE => FALSE,
-				self::COLLAPSE_COUNT => 7,
-			))
-			. ($file ? '<small>in <a href="editor://open/?file=' . rawurlencode($file) . "&amp;line=$line\">" . htmlspecialchars($file) . ":$line</a></small>" : '')
+			. ($file ? ' title="' . htmlspecialchars("$code\nin file $file on line $line", ENT_IGNORE | ENT_QUOTES) . '">' : '>')
+			. self::dumpVar($var, $options)
+			. ($file ? '<small>in <a href="editor://open/?file=' . rawurlencode($file) . "&amp;line=$line\">" . htmlspecialchars($file, ENT_IGNORE) . ":$line</a></small>" : '')
 			. "</pre>\n";
 	}
-
 
 
 	/**
@@ -94,7 +92,6 @@ class Dumper
 	{
 		return htmlspecialchars_decode(strip_tags(self::toHtml($var, $options)), ENT_QUOTES);
 	}
-
 
 
 	/**
@@ -109,7 +106,6 @@ class Dumper
 	}
 
 
-
 	/**
 	 * Internal toHtml() dump implementation.
 	 * @param  mixed  variable to dump
@@ -117,15 +113,14 @@ class Dumper
 	 * @param  int    current recursion level
 	 * @return string
 	 */
-	private static function dumpVar(&$var, array $options, $level = 0)
+	private static function dumpVar(& $var, array $options, $level = 0)
 	{
 		if (method_exists(__CLASS__, $m = 'dump' . gettype($var))) {
-			return /**/self::$m($var, $options, $level);/**//*5.2*call_user_func_array(array(__CLASS__, $m), array(&$var, $options, $level));*/
+			return self::$m($var, $options, $level);
 		} else {
 			return "<span>unknown type</span>\n";
 		}
 	}
-
 
 
 	private static function dumpNull()
@@ -134,30 +129,28 @@ class Dumper
 	}
 
 
-
-	private static function dumpBoolean(&$var)
+	private static function dumpBoolean(& $var)
 	{
 		return '<span class="nette-dump-bool">' . ($var ? 'TRUE' : 'FALSE') . "</span>\n";
 	}
 
 
-
-	private static function dumpInteger(&$var)
+	private static function dumpInteger(& $var)
 	{
 		return "<span class=\"nette-dump-number\">$var</span>\n";
 	}
 
 
-
-	private static function dumpDouble(&$var)
+	private static function dumpDouble(& $var)
 	{
-		$var = var_export($var, TRUE);
-		return '<span class="nette-dump-number">' . $var . (strpos($var, '.') === FALSE ? '.0' : '') . "</span>\n";
+		$var = is_finite($var)
+			? ($tmp = json_encode($var)) . (strpos($tmp, '.') === FALSE ? '.0' : '')
+			: var_export($var, TRUE);
+		return "<span class=\"nette-dump-number\">$var</span>\n";
 	}
 
 
-
-	private static function dumpString(&$var, $options)
+	private static function dumpString(& $var, $options)
 	{
 		return '<span class="nette-dump-string">'
 			. self::encodeString($options[self::TRUNCATE] && strlen($var) > $options[self::TRUNCATE] ? substr($var, 0, $options[self::TRUNCATE]) . ' ... ' : $var)
@@ -165,8 +158,7 @@ class Dumper
 	}
 
 
-
-	private static function dumpArray(&$var, $options, $level)
+	private static function dumpArray(& $var, $options, $level)
 	{
 		static $marker;
 		if ($marker === NULL) {
@@ -176,16 +168,16 @@ class Dumper
 		$out = '<span class="nette-dump-array">array</span> (';
 
 		if (empty($var)) {
-			return $out . "0)\n";
+			return $out . ")\n";
 
 		} elseif (isset($var[$marker])) {
 			return $out . (count($var) - 1) . ") [ <i>RECURSION</i> ]\n";
 
 		} elseif (!$options[self::DEPTH] || $level < $options[self::DEPTH]) {
 			$collapsed = $level ? count($var) >= $options[self::COLLAPSE_COUNT] : $options[self::COLLAPSE];
-			$out = '<span class="nette-toggle' . ($collapsed ? '-collapsed">' : '">') . $out . count($var) . ")</span>\n<div" . ($collapsed ? ' class="nette-collapsed"' : '') . ">";
+			$out = '<span class="nette-toggle' . ($collapsed ? '-collapsed' : '') . '">' . $out . count($var) . ")</span>\n<div" . ($collapsed ? ' class="nette-collapsed"' : '') . '>';
 			$var[$marker] = TRUE;
-			foreach ($var as $k => &$v) {
+			foreach ($var as $k => & $v) {
 				if ($k !== $marker) {
 					$out .= '<span class="nette-dump-indent">   ' . str_repeat('|  ', $level) . '</span>'
 						. '<span class="nette-dump-key">' . (preg_match('#^\w+\z#', $k) ? $k : self::encodeString($k)) . '</span> => '
@@ -201,8 +193,7 @@ class Dumper
 	}
 
 
-
-	private static function dumpObject(&$var, $options, $level)
+	private static function dumpObject(& $var, $options, $level)
 	{
 		if ($var instanceof \Closure) {
 			$rc = new \ReflectionFunction($var);
@@ -210,15 +201,26 @@ class Dumper
 			foreach ($rc->getParameters() as $param) {
 				$fields[] = '$' . $param->getName();
 			}
-			$fields = array('file' => $rc->getFileName(), 'line' => $rc->getStartLine(), 'parameters' => implode(', ', $fields));
+			$fields = array(
+				'file' => $rc->getFileName(), 'line' => $rc->getStartLine(),
+				'variables' => $rc->getStaticVariables(), 'parameters' => implode(', ', $fields)
+			);
 		} elseif ($var instanceof \SplFileInfo) {
 			$fields = array('path' => $var->getPathname());
+		} elseif ($var instanceof \SplObjectStorage) {
+			$fields = array();
+			foreach (clone $var as $obj) {
+				$fields[] = array('object' => $obj, 'data' => $var[$obj]);
+			}
 		} else {
 			$fields = (array) $var;
 		}
 
 		static $list = array();
-		$out = '<span class="nette-dump-object">' . get_class($var) . "</span> (" . count($fields) . ')';
+		$rc = $var instanceof \Closure ? new \ReflectionFunction($var) : new \ReflectionClass($var);
+		$out = '<span class="nette-dump-object"'
+			. ($rc->getFileName() ? ' data-nette-href="' . htmlspecialchars(strtr(Debugger::$editor, array('%file' => rawurlencode($rc->getFileName()), '%line' => $rc->getStartLine()))) . '"' : '')
+			. '>' . get_class($var) . '</span> <span class="nette-dump-hash">#' . substr(md5(spl_object_hash($var)), 0, 4) . '</span>';
 
 		if (empty($fields)) {
 			return $out . "\n";
@@ -228,9 +230,9 @@ class Dumper
 
 		} elseif (!$options[self::DEPTH] || $level < $options[self::DEPTH] || $var instanceof \Closure) {
 			$collapsed = $level ? count($fields) >= $options[self::COLLAPSE_COUNT] : $options[self::COLLAPSE];
-			$out = '<span class="nette-toggle' . ($collapsed ? '-collapsed">' : '">') . $out . "</span>\n<div" . ($collapsed ? ' class="nette-collapsed"' : '') . ">";
+			$out = '<span class="nette-toggle' . ($collapsed ? '-collapsed' : '') . '">' . $out . "</span>\n<div" . ($collapsed ? ' class="nette-collapsed"' : '') . '>';
 			$list[] = $var;
-			foreach ($fields as $k => &$v) {
+			foreach ($fields as $k => & $v) {
 				$vis = '';
 				if ($k[0] === "\x00") {
 					$vis = ' <span class="nette-dump-visibility">' . ($k[1] === '*' ? 'protected' : 'private') . '</span>';
@@ -249,8 +251,7 @@ class Dumper
 	}
 
 
-
-	private static function dumpResource(&$var, $options, $level)
+	private static function dumpResource(& $var, $options, $level)
 	{
 		$type = get_resource_type($var);
 		$out = '<span class="nette-dump-resource">' . htmlSpecialChars($type) . ' resource</span>';
@@ -266,31 +267,24 @@ class Dumper
 	}
 
 
-
 	private static function encodeString($s)
 	{
-		static $utf, $binary;
-		if ($utf === NULL) {
-			foreach (range("\x00", "\xFF") as $ch) {
-				if (ord($ch) < 32 && strpos("\r\n\t", $ch) === FALSE) {
-					$utf[$ch] = $binary[$ch] = '\\x' . str_pad(dechex(ord($ch)), 2, '0', STR_PAD_LEFT);
-				} elseif (ord($ch) < 127) {
-					$utf[$ch] = $binary[$ch] = $ch;
-				} else {
-					$utf[$ch] = $ch; $binary[$ch] = '\\x' . dechex(ord($ch));
-				}
+		static $table;
+		if ($table === NULL) {
+			foreach (array_merge(range("\x00", "\x1F"), range("\x7F", "\xFF")) as $ch) {
+				$table[$ch] = '\x' . str_pad(dechex(ord($ch)), 2, '0', STR_PAD_LEFT);
 			}
-			$binary["\\"] = '\\\\';
-			$binary["\r"] = '\\r';
-			$binary["\n"] = '\\n';
-			$binary["\t"] = '\\t';
-			$utf['\\x'] = $binary['\\x'] = '\\\\x';
+			$table["\\"] = '\\\\';
+			$table["\r"] = '\r';
+			$table["\n"] = '\n';
+			$table["\t"] = '\t';
 		}
 
-		$s = strtr($s, preg_match('#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]#u', $s) || preg_last_error() ? $binary : $utf);
+		if (preg_match('#[^\x09\x0A\x0D\x20-\x7E\xA0-\x{10FFFF}]#u', $s) || preg_last_error()) {
+			$s = strtr($s, $table);
+		}
 		return '"' . htmlSpecialChars($s, ENT_NOQUOTES) . '"';
 	}
-
 
 
 	/**
@@ -299,23 +293,45 @@ class Dumper
 	 */
 	private static function findLocation()
 	{
-		foreach (/*5.2*PHP_VERSION_ID < 50205 ? debug_backtrace() : */debug_backtrace(FALSE) as $item) {
-			if (isset($item['file']) && strpos($item['file'], __DIR__) === 0) {
+		foreach (debug_backtrace(PHP_VERSION_ID >= 50306 ? DEBUG_BACKTRACE_IGNORE_ARGS : FALSE) as $item) {
+			if (isset($item['class']) && $item['class'] === __CLASS__) {
+				$location = $item;
 				continue;
-
-			} elseif (!isset($item['file'], $item['line']) || !is_file($item['file'])) {
-				break;
-
-			} else {
-				$lines = file($item['file']);
-				$line = $lines[$item['line'] - 1];
-				return array(
-					$item['file'],
-					$item['line'],
-					preg_match('#\w*dump(er::\w+)?\(.*\)#i', $line, $m) ? $m[0] : $line
-				);
+			} elseif (isset($item['function'])) {
+				try {
+					$reflection = isset($item['class'])
+						? new \ReflectionMethod($item['class'], $item['function'])
+						: new \ReflectionFunction($item['function']);
+					if (preg_match('#\s@tracySkipLocation\s#', $reflection->getDocComment())) {
+						$location = $item;
+						continue;
+					}
+				} catch (\ReflectionException $e) {}
 			}
+			break;
 		}
+
+		if (isset($location['file'], $location['line']) && is_file($location['file'])) {
+			$lines = file($location['file']);
+			$line = $lines[$location['line'] - 1];
+			return array(
+				$location['file'],
+				$location['line'],
+				trim(preg_match('#\w*dump(er::\w+)?\(.*\)#i', $line, $m) ? $m[0] : $line)
+			);
+		}
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	private static function detectColors()
+	{
+		return self::$terminalColors &&
+			(getenv('ConEmuANSI') === 'ON'
+			|| getenv('ANSICON') !== FALSE
+			|| (defined('STDOUT') && function_exists('posix_isatty') && posix_isatty(STDOUT)));
 	}
 
 }

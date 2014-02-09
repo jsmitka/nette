@@ -4,16 +4,14 @@
  * Test: Nette\Application\Routers\SimpleRouter and modules.
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
 use Nette\Http,
-	Nette\Application;
-
+	Nette\Application,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $router = new Application\Routers\SimpleRouter(array(

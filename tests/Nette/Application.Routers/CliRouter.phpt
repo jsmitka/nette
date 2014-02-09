@@ -4,16 +4,14 @@
  * Test: Nette\Application\Routers\CliRouter basic usage
  *
  * @author     David Grudl
- * @package    Nette\Application\Routers
  */
 
 use Nette\Http,
-	Nette\Application\Routers\CliRouter;
-
+	Nette\Application\Routers\CliRouter,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 // php.exe app.phpc homepage:default name --verbose -user "john doe" "-pass=se cret" /wait

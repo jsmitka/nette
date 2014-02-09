@@ -4,15 +4,13 @@
  * Test: Nette\Security\Permission Ensure that basic rule removal works.
  *
  * @author     David Grudl
- * @package    Nette\Security
  */
 
-use Nette\Security\Permission;
-
+use Nette\Security\Permission,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $acl = new Permission;

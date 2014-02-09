@@ -4,14 +4,11 @@
  * Test: Nette\Object closure properties.
  *
  * @author     David Grudl
- * @package    Nette
  */
 
-
-
+use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class TestClass extends Nette\Object
@@ -37,7 +34,6 @@ class TestClass extends Nette\Object
 	}
 
 }
-
 
 
 $obj1 = new TestClass(1);

@@ -4,15 +4,13 @@
  * Test: Nette\Utils\Strings::fixEncoding()
  *
  * @author     David Grudl
- * @package    Nette\Utils
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 function utfChar($ord)

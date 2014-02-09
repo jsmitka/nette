@@ -4,20 +4,19 @@
  * Test: Nette\Caching\Storages\MemcachedStorage tags dependency test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Storages\MemcachedStorage,
 	Nette\Caching\Storages\FileJournal,
-	Nette\Caching\Cache;
-
+	Nette\Caching\Cache,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
 if (!MemcachedStorage::isAvailable()) {
-	Tester\Helpers::skip('Requires PHP extension Memcache.');
+	Tester\Environment::skip('Requires PHP extension Memcache.');
 }
 
 
@@ -46,7 +45,7 @@ $cache->clean(array(
 	Cache::TAGS => 'one',
 ));
 
-Assert::false( isset($cache['nette-tags-key1']), 'Is cached nette-tags-key1?' );
-Assert::false( isset($cache['nette-tags-key2']), 'Is cached nette-tags-key2?' );
-Assert::true( isset($cache['nette-tags-key3']), 'Is cached nette-tags-key3?' );
-Assert::true( isset($cache['nette-tags-key4']), 'Is cached nette-tags-key4?' );
+Assert::false( isset($cache['nette-tags-key1']) );
+Assert::false( isset($cache['nette-tags-key2']) );
+Assert::true( isset($cache['nette-tags-key3']) );
+Assert::true( isset($cache['nette-tags-key4']) );

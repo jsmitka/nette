@@ -4,15 +4,13 @@
  * Test: Nette\Http\Url::isEqual()
  *
  * @author     David Grudl
- * @package    Nette\Http
  */
 
-use Nette\Http\Url;
-
+use Nette\Http\Url,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $url = new Url('http://exampl%65.COM?text=foo%20bar+foo&value');

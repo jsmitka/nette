@@ -2,18 +2,14 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Templating;
 
 use Nette,
-	Nette\Caching;
-
+	Nette\Caching,
+	Nette\Utils\Callback;
 
 
 /**
@@ -45,18 +41,16 @@ class Template extends Nette\Object implements ITemplate
 	private $cacheStorage;
 
 
-
 	/**
 	 * Sets template source code.
 	 * @param  string
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function setSource($source)
 	{
 		$this->source = $source;
 		return $this;
 	}
-
 
 
 	/**
@@ -69,9 +63,7 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/********************* rendering ****************d*g**/
-
 
 
 	/**
@@ -97,7 +89,6 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/**
 	 * Renders template to file.
 	 * @param  string
@@ -111,7 +102,6 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/**
 	 * Renders template to string.
 	 * @param  bool  can throw exceptions? (hidden parameter)
@@ -119,7 +109,6 @@ class Template extends Nette\Object implements ITemplate
 	 */
 	public function __toString()
 	{
-		$args = func_get_args();
 		ob_start();
 		try {
 			$this->render();
@@ -127,14 +116,13 @@ class Template extends Nette\Object implements ITemplate
 
 		} catch (\Exception $e) {
 			ob_end_clean();
-			if ($args && $args[0]) {
+			if (func_get_args() && func_get_arg(0)) {
 				throw $e;
 			} else {
 				trigger_error("Exception in " . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
 			}
 		}
 	}
-
 
 
 	/**
@@ -150,7 +138,7 @@ class Template extends Nette\Object implements ITemplate
 		$code = $this->getSource();
 		foreach ($this->filters as $filter) {
 			$code = self::extractPhp($code, $blocks);
-			$code = $filter/*5.2*->invoke*/($code);
+			$code = call_user_func($filter, $code);
 			$code = strtr($code, $blocks); // put PHP code back
 		}
 
@@ -158,82 +146,74 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/********************* template filters & helpers ****************d*g**/
-
 
 
 	/**
 	 * Registers callback as template compile-time filter.
 	 * @param  callable
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function registerFilter($callback)
 	{
-		$this->filters[] = new Nette\Callback($callback);
+		$this->filters[] = Callback::check($callback);
 		return $this;
 	}
-
 
 
 	/**
 	 * Returns all registered compile-time filters.
 	 * @return array
 	 */
-	final public function getFilters()
+	public function getFilters()
 	{
 		return $this->filters;
 	}
-
 
 
 	/**
 	 * Registers callback as template run-time helper.
 	 * @param  string
 	 * @param  callable
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function registerHelper($name, $callback)
 	{
-		$this->helpers[strtolower($name)] = new Nette\Callback($callback);
+		$this->helpers[strtolower($name)] = $callback;
 		return $this;
 	}
-
 
 
 	/**
 	 * Registers callback as template run-time helpers loader.
 	 * @param  callable
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function registerHelperLoader($callback)
 	{
-		$this->helperLoaders[] = new Nette\Callback($callback);
+		array_unshift($this->helperLoaders, $callback);
 		return $this;
 	}
-
 
 
 	/**
 	 * Returns all registered run-time helpers.
 	 * @return array
 	 */
-	final public function getHelpers()
+	public function getHelpers()
 	{
 		return $this->helpers;
 	}
-
 
 
 	/**
 	 * Returns all registered template run-time helper loaders.
 	 * @return array
 	 */
-	final public function getHelperLoaders()
+	public function getHelperLoaders()
 	{
 		return $this->helperLoaders;
 	}
-
 
 
 	/**
@@ -247,23 +227,22 @@ class Template extends Nette\Object implements ITemplate
 		$lname = strtolower($name);
 		if (!isset($this->helpers[$lname])) {
 			foreach ($this->helperLoaders as $loader) {
-				$helper = $loader/*5.2*->invoke*/($lname);
+				$helper = Callback::invoke($loader, $lname);
 				if ($helper) {
 					$this->registerHelper($lname, $helper);
-					return $this->helpers[$lname]->invokeArgs($args);
+					return Callback::invokeArgs($this->helpers[$lname], $args);
 				}
 			}
 			return parent::__call($name, $args);
 		}
 
-		return $this->helpers[$lname]->invokeArgs($args);
+		return Callback::invokeArgs($this->helpers[$lname], $args);
 	}
-
 
 
 	/**
 	 * Sets translate adapter.
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function setTranslator(Nette\Localization\ITranslator $translator = NULL)
 	{
@@ -272,14 +251,12 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/********************* template parameters ****************d*g**/
-
 
 
 	/**
 	 * Adds new template parameter.
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function add($name, $value)
 	{
@@ -292,18 +269,16 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/**
 	 * Sets all parameters.
 	 * @param  array
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function setParameters(array $params)
 	{
 		$this->params = $params + $this->params;
 		return $this;
 	}
-
 
 
 	/**
@@ -317,7 +292,6 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/**
 	 * Sets a template parameter. Do not call directly.
 	 * @return void
@@ -326,7 +300,6 @@ class Template extends Nette\Object implements ITemplate
 	{
 		$this->params[$name] = $value;
 	}
-
 
 
 	/**
@@ -343,7 +316,6 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/**
 	 * Determines whether parameter is defined. Do not call directly.
 	 * @return bool
@@ -352,7 +324,6 @@ class Template extends Nette\Object implements ITemplate
 	{
 		return isset($this->params[$name]);
 	}
-
 
 
 	/**
@@ -366,21 +337,18 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/********************* caching ****************d*g**/
-
 
 
 	/**
 	 * Set cache storage.
-	 * @return Template  provides a fluent interface
+	 * @return self
 	 */
 	public function setCacheStorage(Caching\IStorage $storage)
 	{
 		$this->cacheStorage = $storage;
 		return $this;
 	}
-
 
 
 	/**
@@ -395,9 +363,7 @@ class Template extends Nette\Object implements ITemplate
 	}
 
 
-
 	/********************* tools ****************d*g**/
-
 
 
 	/**

@@ -4,15 +4,13 @@
  * Test: Nette\DI\Container static & dynamic usage.
  *
  * @author     David Grudl
- * @package    Nette\DI
  */
 
-use Nette\DI\Container;
-
+use Nette\DI\Container,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 class MyContainer extends Container
@@ -26,7 +24,6 @@ class MyContainer extends Container
 }
 
 
-
 $container = new MyContainer;
 
 Assert::true( $container->hasService('one') );
@@ -35,5 +32,5 @@ $container->addService('one', new stdClass);
 
 Assert::true( $container->hasService('one') );
 
-Assert::true( $container->getService('one') instanceof stdClass );
+Assert::type( 'stdClass', $container->getService('one') );
 Assert::same( $container->getService('one'), $container->getService('one') ); // shared

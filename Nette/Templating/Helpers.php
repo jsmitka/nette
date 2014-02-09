@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Templating;
@@ -17,13 +13,12 @@ use Nette,
 	Nette\Utils\Html;
 
 
-
 /**
  * Template helpers.
  *
  * @author     David Grudl
  */
-final class Helpers
+class Helpers
 {
 	private static $helpers = array(
 		'normalize' => 'Nette\Utils\Strings::normalize',
@@ -40,8 +35,8 @@ final class Helpers
 		'reverse' =>  'Nette\Utils\Strings::reverse',
 		'replacere' => 'Nette\Utils\Strings::replace',
 		'url' => 'rawurlencode',
+		'escapeurl' => 'rawurlencode',
 		'striptags' => 'strip_tags',
-		'nl2br' => 'nl2br',
 		'substr' => 'Nette\Utils\Strings::substring',
 		'repeat' => 'str_repeat',
 		'implode' => 'implode',
@@ -52,7 +47,6 @@ final class Helpers
 	public static $dateFormat = '%x';
 
 
-
 	/**
 	 * Try to load the requested helper.
 	 * @param  string  helper name
@@ -61,12 +55,11 @@ final class Helpers
 	public static function loader($helper)
 	{
 		if (method_exists(__CLASS__, $helper)) {
-			return new Nette\Callback(__CLASS__, $helper);
+			return array(__CLASS__, $helper);
 		} elseif (isset(self::$helpers[$helper])) {
 			return self::$helpers[$helper];
 		}
 	}
-
 
 
 	/**
@@ -84,7 +77,6 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * Escapes string for use inside HTML comments.
 	 * @param  string  UTF-8 encoding
@@ -92,10 +84,8 @@ final class Helpers
 	 */
 	public static function escapeHtmlComment($s)
 	{
-		// -- has special meaning in different browsers
-		return str_replace('--', '--><!-- ', $s); // HTML tags have no meaning inside comments
+		return ' ' . str_replace('-', '- ', $s); // dash is very problematic character in comments
 	}
-
 
 
 	/**
@@ -112,7 +102,6 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * Escapes string for use inside CSS template.
 	 * @param  string UTF-8 encoding
@@ -125,9 +114,8 @@ final class Helpers
 	}
 
 
-
 	/**
-	 * Escapes string for use inside JavaScript template.
+	 * Escapes variables for use inside <script>.
 	 * @param  mixed  UTF-8 encoding
 	 * @return string
 	 */
@@ -136,9 +124,8 @@ final class Helpers
 		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			$s = $s->__toString(TRUE);
 		}
-		return str_replace(']]>', ']]\x3E', Nette\Utils\Json::encode($s));
+		return str_replace(array(']]>', '<!'), array(']]\x3E', '\x3C!'), Nette\Utils\Json::encode($s));
 	}
-
 
 
 	/**
@@ -153,6 +140,16 @@ final class Helpers
 	}
 
 
+	/**
+	 * Sanitizes string for use inside href attribute.
+	 * @param  string
+	 * @return string
+	 */
+	public static function safeUrl($s)
+	{
+		return preg_match('~^(?:(?:https?|ftp)://[^@]+(?:/.*)?|mailto:.+|[/?#].*|[^:]+)\z~i', $s) ? $s : '';
+	}
+
 
 	/**
 	 * Replaces all repeated white spaces with a single space.
@@ -164,11 +161,10 @@ final class Helpers
 		return Strings::replace(
 			$s,
 			'#(</textarea|</pre|</script|^).*?(?=<textarea|<pre|<script|\z)#si',
-			/*5.2* new Nette\Callback(*/function($m) {
+			function($m) {
 				return trim(preg_replace('#[ \t\r\n]+#', " ", $m[0]));
-			}/*5.2* )*/);
+			});
 	}
-
 
 
 	/**
@@ -181,9 +177,9 @@ final class Helpers
 	public static function indent($s, $level = 1, $chars = "\t")
 	{
 		if ($level >= 1) {
-			$s = Strings::replace($s, '#<(textarea|pre).*?</\\1#si', /*5.2* new Nette\Callback(*/function($m) {
+			$s = Strings::replace($s, '#<(textarea|pre).*?</\\1#si', function($m) {
 				return strtr($m[0], " \t\r\n", "\x1F\x1E\x1D\x1A");
-			}/*5.2* )*/);
+			});
 			$s = Strings::indent($s, $level, $chars);
 			$s = strtr($s, "\x1F\x1E\x1D\x1A", " \t\r\n");
 		}
@@ -191,10 +187,9 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * Date/time formatting.
-	 * @param  string|int|DateTime
+	 * @param  string|int|DateTime|DateInterval
 	 * @param  string
 	 * @return string
 	 */
@@ -208,12 +203,15 @@ final class Helpers
 			$format = self::$dateFormat;
 		}
 
+		if ($time instanceof \DateInterval) {
+			return $time->format($format);
+		}
+
 		$time = Nette\DateTime::from($time);
 		return Strings::contains($format, '%')
 			? strftime($format, $time->format('U')) // formats according to locales
 			: $time->format($format); // formats using date()
 	}
-
 
 
 	/**
@@ -229,7 +227,6 @@ final class Helpers
 			? NULL
 			: Nette\DateTime::from($time)->modify($delta . $unit);
 	}
-
 
 
 	/**
@@ -252,7 +249,6 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * Returns array of string length.
 	 * @param  mixed
@@ -262,7 +258,6 @@ final class Helpers
 	{
 		return is_string($var) ? Strings::length($var) : count($var);
 	}
-
 
 
 	/**
@@ -276,7 +271,6 @@ final class Helpers
 	{
 		return str_replace($search, $replacement, $subject);
 	}
-
 
 
 	/**
@@ -294,21 +288,28 @@ final class Helpers
 	}
 
 
-
 	/**
 	 * /dev/null.
 	 * @param  mixed
 	 * @return string
 	 */
-	public static function null($value)
+	public static function null()
 	{
 		return '';
 	}
 
 
+	/**
+	 * @param  string
+	 * @return string
+	 */
+	public static function nl2br($value)
+	{
+		return nl2br($value, Html::$xhtml);
+	}
+
 
 	/********************* Template tools ****************d*g**/
-
 
 
 	/**

@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\UI;
 
 use Nette;
-
 
 
 /**
@@ -48,7 +43,6 @@ class Link extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns link destination.
 	 * @return string
@@ -59,19 +53,17 @@ class Link extends Nette\Object
 	}
 
 
-
 	/**
 	 * Changes link parameter.
 	 * @param  string
 	 * @param  mixed
-	 * @return Link  provides a fluent interface
+	 * @return self
 	 */
 	public function setParameter($key, $value)
 	{
 		$this->params[$key] = $value;
 		return $this;
 	}
-
 
 
 	/**
@@ -85,7 +77,6 @@ class Link extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns link parameters.
 	 * @return array
@@ -94,7 +85,6 @@ class Link extends Nette\Object
 	{
 		return $this->params;
 	}
-
 
 
 	/**

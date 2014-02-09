@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\ComponentModel;
 
 use Nette;
-
 
 
 /**
@@ -37,7 +32,6 @@ abstract class Component extends Nette\Object implements IComponent
 	private $monitors = array();
 
 
-
 	public function __construct(IContainer $parent = NULL, $name = NULL)
 	{
 		if ($parent !== NULL) {
@@ -47,7 +41,6 @@ abstract class Component extends Nette\Object implements IComponent
 			$this->name = $name;
 		}
 	}
-
 
 
 	/**
@@ -63,12 +56,13 @@ abstract class Component extends Nette\Object implements IComponent
 			$path = self::NAME_SEPARATOR . $this->name;
 			$depth = 1;
 			while ($obj !== NULL) {
-				if ($obj instanceof $type) {
+				$parent = $obj->getParent();
+				if ($type ? $obj instanceof $type : $parent === NULL) {
 					break;
 				}
 				$path = self::NAME_SEPARATOR . $obj->getName() . $path;
 				$depth++;
-				$obj = $obj->getParent(); // IComponent::getParent()
+				$obj = $parent; // IComponent::getParent()
 				if ($obj === $this) {
 					$obj = NULL; // prevent cycling
 				}
@@ -90,7 +84,6 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/**
 	 * Lookup for component specified by class or interface name. Returns backtrace path.
 	 * A path is the concatenation of component names separated by self::NAME_SEPARATOR.
@@ -98,12 +91,11 @@ abstract class Component extends Nette\Object implements IComponent
 	 * @param  bool   throw exception if component doesn't exist?
 	 * @return string
 	 */
-	public function lookupPath($type, $need = TRUE)
+	public function lookupPath($type = NULL, $need = TRUE)
 	{
 		$this->lookup($type, $need);
 		return $this->monitors[$type][2];
 	}
-
 
 
 	/**
@@ -122,7 +114,6 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/**
 	 * Stops monitoring.
 	 * @param  string class/interface type
@@ -132,7 +123,6 @@ abstract class Component extends Nette\Object implements IComponent
 	{
 		unset($this->monitors[$type]);
 	}
-
 
 
 	/**
@@ -146,7 +136,6 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/**
 	 * This method will be called before the component (or component's parent)
 	 * becomes detached from a monitored object. Do not call this method yourself.
@@ -158,30 +147,26 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/********************* interface IComponent ****************d*g**/
-
 
 
 	/**
 	 * @return string
 	 */
-	final public function getName()
+	public function getName()
 	{
 		return $this->name;
 	}
-
 
 
 	/**
 	 * Returns the container if any.
 	 * @return IContainer|NULL
 	 */
-	final public function getParent()
+	public function getParent()
 	{
 		return $this->parent;
 	}
-
 
 
 	/**
@@ -189,7 +174,7 @@ abstract class Component extends Nette\Object implements IComponent
 	 * not be called by applications
 	 * @param  IContainer  New parent or null if this component is being removed from a parent
 	 * @param  string
-	 * @return Component  provides a fluent interface
+	 * @return self
 	 * @throws Nette\InvalidStateException
 	 * @internal
 	 */
@@ -227,7 +212,6 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/**
 	 * Is called by a component when it is about to be set new parent. Descendant can
 	 * override this method to disallow a parent change by throwing an Nette\InvalidStateException
@@ -237,7 +221,6 @@ abstract class Component extends Nette\Object implements IComponent
 	protected function validateParent(IContainer $parent)
 	{
 	}
-
 
 
 	/**
@@ -301,9 +284,7 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/********************* cloneable, serializable ****************d*g**/
-
 
 
 	/**
@@ -327,21 +308,19 @@ abstract class Component extends Nette\Object implements IComponent
 	}
 
 
-
 	/**
 	 * Prevents serialization.
 	 */
-	final public function __sleep()
+	public function __sleep()
 	{
 		throw new Nette\NotImplementedException('Object serialization is not supported by class ' . get_class($this));
 	}
 
 
-
 	/**
 	 * Prevents unserialization.
 	 */
-	final public function __wakeup()
+	public function __wakeup()
 	{
 		throw new Nette\NotImplementedException('Object unserialization is not supported by class ' . get_class($this));
 	}

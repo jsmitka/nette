@@ -4,17 +4,15 @@
  * Test: Nette\Loaders\RobotLoader filters.
  *
  * @author     David Grudl
- * @package    Nette\Loaders
  */
 
 use Nette\Loaders\RobotLoader,
 	Nette\Caching\Storages\DevNullStorage,
-	Nette\Caching\Storages\PhpFileStorage;
-
+	Nette\Caching\Storages\PhpFileStorage,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $loader = new RobotLoader;

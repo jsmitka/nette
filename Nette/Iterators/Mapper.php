@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Iterators;
 
 use Nette;
-
 
 
 /**
@@ -29,14 +24,13 @@ class Mapper extends \IteratorIterator
 	public function __construct(\Traversable $iterator, $callback)
 	{
 		parent::__construct($iterator);
-		$this->callback = new Nette\Callback($callback);
+		$this->callback = Nette\Utils\Callback::check($callback);
 	}
-
 
 
 	public function current()
 	{
-		return $this->callback->invoke(parent::current(), parent::key());
+		return call_user_func($this->callback, parent::current(), parent::key());
 	}
 
 }

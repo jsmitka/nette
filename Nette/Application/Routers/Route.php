@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Application\Routers;
@@ -14,7 +10,6 @@ namespace Nette\Application\Routers;
 use Nette,
 	Nette\Application,
 	Nette\Utils\Strings;
-
 
 
 /**
@@ -111,7 +106,6 @@ class Route extends Nette\Object implements Application\IRouter
 	private $flags;
 
 
-
 	/**
 	 * @param  string  URL mask, e.g. '<presenter>/<action>/<id \d{1,3}>'
 	 * @param  array|string   default values or metadata
@@ -138,7 +132,6 @@ class Route extends Nette\Object implements Application\IRouter
 		$this->flags = $flags | static::$defaultFlags;
 		$this->setMask($mask, $metadata);
 	}
-
 
 
 	/**
@@ -233,10 +226,18 @@ class Route extends Nette\Object implements Application\IRouter
 			}
 		}
 
+		if (isset($this->metadata[NULL][self::FILTER_IN])) {
+			$params = call_user_func($this->metadata[NULL][self::FILTER_IN], $params);
+			if ($params === NULL) {
+				return NULL;
+			}
+		}
 
 		// 5) BUILD Request
 		if (!isset($params[self::PRESENTER_KEY])) {
 			throw new Nette\InvalidStateException('Missing presenter in route definition.');
+		} elseif (!is_string($params[self::PRESENTER_KEY])) {
+			return NULL;
 		}
 		if (isset($this->metadata[self::MODULE_KEY])) {
 			if (!isset($params[self::MODULE_KEY])) {
@@ -261,7 +262,6 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Constructs absolute URL from Request object.
 	 * @return string|NULL
@@ -277,6 +277,13 @@ class Route extends Nette\Object implements Application\IRouter
 
 		$presenter = $appRequest->getPresenterName();
 		$params[self::PRESENTER_KEY] = $presenter;
+
+		if (isset($metadata[NULL][self::FILTER_OUT])) {
+			$params = call_user_func($metadata[NULL][self::FILTER_OUT], $params);
+			if ($params === NULL) {
+				return NULL;
+			}
+		}
 
 		if (isset($metadata[self::MODULE_KEY])) { // try split into module and [submodule:]presenter parts
 			$module = $metadata[self::MODULE_KEY];
@@ -313,9 +320,7 @@ class Route extends Nette\Object implements Application\IRouter
 				}
 			}
 
-			if (!is_scalar($params[$name])) {
-
-			} elseif (isset($meta['filterTable2'][$params[$name]])) {
+			if (is_scalar($params[$name]) && isset($meta['filterTable2'][$params[$name]])) {
 				$params[$name] = $meta['filterTable2'][$params[$name]];
 
 			} elseif (isset($meta['filterTable2']) && !empty($meta[self::FILTER_STRICT])) {
@@ -414,7 +419,6 @@ class Route extends Nette\Object implements Application\IRouter
 
 		return $url;
 	}
-
 
 
 	/**
@@ -610,7 +614,6 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Returns mask.
 	 * @return string
@@ -619,7 +622,6 @@ class Route extends Nette\Object implements Application\IRouter
 	{
 		return $this->mask;
 	}
-
 
 
 	/**
@@ -638,7 +640,6 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Returns flags.
 	 * @return int
@@ -649,13 +650,12 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/********************* Utilities ****************d*g**/
-
 
 
 	/**
 	 * Proprietary cache aim.
+	 * @internal
 	 * @return string|FALSE
 	 */
 	public function getTargetPresenter()
@@ -680,7 +680,6 @@ class Route extends Nette\Object implements Application\IRouter
 		}
 		return NULL;
 	}
-
 
 
 	/**
@@ -709,9 +708,7 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/********************* Inflectors ****************d*g**/
-
 
 
 	/**
@@ -726,7 +723,6 @@ class Route extends Nette\Object implements Application\IRouter
 		$s = rawurlencode($s);
 		return $s;
 	}
-
 
 
 	/**
@@ -745,7 +741,6 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * PascalCase:Presenter name -> dash-and-dot-separated.
 	 * @param  string
@@ -759,7 +754,6 @@ class Route extends Nette\Object implements Application\IRouter
 		$s = rawurlencode($s);
 		return $s;
 	}
-
 
 
 	/**
@@ -778,7 +772,6 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/**
 	 * Url encode.
 	 * @param  string
@@ -790,9 +783,7 @@ class Route extends Nette\Object implements Application\IRouter
 	}
 
 
-
 	/********************* Route::$styles manipulator ****************d*g**/
-
 
 
 	/**
@@ -817,7 +808,6 @@ class Route extends Nette\Object implements Application\IRouter
 			static::$styles[$style] = array();
 		}
 	}
-
 
 
 	/**

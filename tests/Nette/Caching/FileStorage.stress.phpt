@@ -4,36 +4,31 @@
  * Test: Nette\Caching\Storages\FileStorage sliding expiration test.
  *
  * @author     David Grudl
- * @package    Nette\Caching
+ * @multiple   5
  */
 
 use Nette\Caching\Storages\FileStorage,
-	Nette\Diagnostics\Debugger;
-
+	Nette\Diagnostics\Debugger,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 
-
-// TODO: run it twice (or more) simultaneously</h1>
 set_time_limit(0);
-
 
 
 function randomStr()
 {
-	$s = str_repeat('LaTrine', rand(100, 20000));
+	$s = str_repeat('LaTrine', rand(10, 2000));
 	return sha1($s, TRUE) . $s;
 }
-
 
 
 function checkStr($s)
 {
 	return substr($s, 0, 20) === sha1(substr($s, 20), TRUE);
 }
-
 
 
 define('COUNT_FILES', 3);

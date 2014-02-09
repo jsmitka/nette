@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\DI;
 
 use Nette;
-
 
 
 /**
@@ -49,6 +44,8 @@ class ServiceDefinition extends Nette\Object
 	/** @var string  interface name */
 	public $implement;
 
+	/** @internal @var string  create | get */
+	public $implementType;
 
 
 	public function setClass($class, array $args = array())
@@ -61,13 +58,11 @@ class ServiceDefinition extends Nette\Object
 	}
 
 
-
 	public function setFactory($factory, array $args = array())
 	{
 		$this->factory = new Statement($factory, $args);
 		return $this;
 	}
-
 
 
 	public function setArguments(array $args = array())
@@ -81,17 +76,11 @@ class ServiceDefinition extends Nette\Object
 	}
 
 
-
-	public function addSetup($target, $args = NULL)
+	public function addSetup($target, array $args = array())
 	{
-		if (!is_array($args)) {
-			$args = func_get_args();
-			array_shift($args);
-		}
 		$this->setup[] = new Statement($target, $args);
 		return $this;
 	}
-
 
 
 	public function setParameters(array $params)
@@ -102,13 +91,11 @@ class ServiceDefinition extends Nette\Object
 	}
 
 
-
 	public function addTag($tag, $attrs = TRUE)
 	{
 		$this->tags[$tag] = $attrs;
 		return $this;
 	}
-
 
 
 	public function setAutowired($on)
@@ -118,7 +105,7 @@ class ServiceDefinition extends Nette\Object
 	}
 
 
-
+	/** @deprecated */
 	public function setShared($on)
 	{
 		$this->shared = (bool) $on;
@@ -127,13 +114,11 @@ class ServiceDefinition extends Nette\Object
 	}
 
 
-
 	public function setInject($on)
 	{
 		$this->inject = (bool) $on;
 		return $this;
 	}
-
 
 
 	public function setImplement($implement)

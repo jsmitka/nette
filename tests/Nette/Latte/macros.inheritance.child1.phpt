@@ -4,19 +4,16 @@
  * Test: Nette\Latte\Engine: {extends ...} test I.
  *
  * @author     David Grudl
- * @package    Nette\Latte
- * @keepTrailingSpaces
  */
 
 use Nette\Latte,
-	Nette\Templating\FileTemplate;
-
+	Nette\Templating\FileTemplate,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
 
 require __DIR__ . '/Template.inc';
-
 
 
 $template = new FileTemplate(__DIR__ . '/templates/inheritance.child1.latte');
@@ -26,6 +23,6 @@ $template->registerFilter(new Latte\Engine);
 $template->people = array('John', 'Mary', 'Paul');
 
 $path = __DIR__ . '/expected/' . basename(__FILE__, '.phpt');
-Assert::match(file_get_contents("$path.child.phtml"), codefix($template->compile()));
-Assert::match(file_get_contents("$path.html"), $template->__toString(TRUE));
-Assert::match(file_get_contents("$path.parent.phtml"), $cache->phtml['inheritance.parent.latte']);
+Assert::matchFile("$path.child.phtml", codefix($template->compile()));
+Assert::matchFile("$path.html", $template->__toString(TRUE));
+Assert::matchFile("$path.parent.phtml", $cache->phtml['inheritance.parent.latte']);

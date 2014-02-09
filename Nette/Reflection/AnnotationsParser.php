@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Reflection;
@@ -15,14 +11,13 @@ use Nette,
 	Nette\Utils\Strings;
 
 
-
 /**
  * Annotations support for PHP.
  *
  * @author     David Grudl
  * @Annotation
  */
-final class AnnotationsParser
+class AnnotationsParser
 {
 	/** @internal single & double quoted PHP string */
 	const RE_STRING = '\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"';
@@ -46,7 +41,6 @@ final class AnnotationsParser
 	private static $cacheStorage;
 
 
-
 	/**
 	 * Static class - cannot be instantiated.
 	 */
@@ -54,7 +48,6 @@ final class AnnotationsParser
 	{
 		throw new Nette\StaticClassException;
 	}
-
 
 
 	/**
@@ -66,7 +59,7 @@ final class AnnotationsParser
 	{
 		if ($r instanceof \ReflectionClass) {
 			$type = $r->getName();
-			$member = '';
+			$member = 'class';
 
 		} elseif ($r instanceof \ReflectionMethod) {
 			$type = $r->getDeclaringClass()->getName();
@@ -104,13 +97,19 @@ final class AnnotationsParser
 			$outerCache = new Nette\Caching\Cache(self::$cacheStorage, 'Nette.Reflection.Annotations');
 
 			if (self::$cache === NULL) {
-				self::$cache = (array) $outerCache->offsetGet('list');
+				self::$cache = (array) $outerCache->load('list');
 				self::$timestamps = isset(self::$cache['*']) ? self::$cache['*'] : array();
 			}
 
 			if (!isset(self::$cache[$type]) && $file) {
 				self::$cache['*'][$file] = filemtime($file);
-				self::parseScript($file);
+				foreach (self::parsePhp(file_get_contents($file)) as $class => $info) {
+					foreach ($info as $prop => $comment) {
+						if ($prop !== 'use') {
+							self::$cache[$class][$prop] = self::parseComment($comment);
+						}
+					}
+				}
 				$outerCache->save('list', self::$cache);
 			}
 
@@ -122,8 +121,8 @@ final class AnnotationsParser
 		}
 
 		if ($r instanceof \ReflectionMethod && !$r->isPrivate()
-			&& (!$r->isConstructor() || !empty($annotations['inheritdoc'][0])))
-		{
+			&& (!$r->isConstructor() || !empty($annotations['inheritdoc'][0]))
+		) {
 			try {
 				$inherited = self::getAll(new \ReflectionMethod(get_parent_class($type), $member));
 			} catch (\ReflectionException $e) {
@@ -139,6 +138,38 @@ final class AnnotationsParser
 		return self::$cache[$type][$member] = $annotations;
 	}
 
+
+	/**
+	 * Expands class name into FQN.
+	 * @param  string
+	 * @return string  fully qualified class name
+	 * @throws Nette\InvalidArgumentException
+	 */
+	public static function expandClassName($name, \ReflectionClass $reflector)
+	{
+		if (empty($name)) {
+			throw new Nette\InvalidArgumentException('Class name must not be empty.');
+		}
+
+		if ($name[0] === '\\') { // already fully qualified
+			return ltrim($name, '\\');
+		}
+
+		$parsed = static::parsePhp(file_get_contents($reflector->getFileName()));
+		$uses = array_change_key_case((array) $tmp = & $parsed[$reflector->getName()]['use']);
+		$parts = explode('\\', $name, 2);
+		$parts[0] = strtolower($parts[0]);
+		if (isset($uses[$parts[0]])) {
+			$parts[0] = $uses[$parts[0]];
+			return implode('\\', $parts);
+
+		} elseif ($reflector->inNamespace()) {
+			return $reflector->getNamespaceName() . '\\' . $name;
+
+		} else {
+			return $name;
+		}
+	}
 
 
 	/**
@@ -229,111 +260,115 @@ final class AnnotationsParser
 	}
 
 
-
 	/**
 	 * Parses PHP file.
 	 * @param  string
-	 * @return void
+	 * @return array [class => [prop => comment (or 'use' => [alias => class])]
 	 */
-	private static function parseScript($file)
+	public static function parsePhp($code)
 	{
-		$T_NAMESPACE = PHP_VERSION_ID < 50300 ? -1 : T_NAMESPACE;
-		$T_NS_SEPARATOR = PHP_VERSION_ID < 50300 ? -1 : T_NS_SEPARATOR;
-
-		$s = file_get_contents($file);
-
-		if (Strings::match($s, '#//nette'.'loader=(\S*)#')) {
+		if (Strings::match($code, '#//nette'.'loader=(\S*)#')) {
 			return; // TODO: allways ignore?
 		}
 
-		$expected = $namespace = $class = $docComment = NULL;
-		$level = $classLevel = 0;
+		$tokens = @token_get_all($code);
+		$namespace = $class = $classLevel = $level = $docComment = NULL;
+		$res = $uses = array();
 
-		foreach (token_get_all($s) as $token) {
-
-			if (is_array($token)) {
-				switch ($token[0]) {
+		while (list($key, $token) = each($tokens)) {
+			switch (is_array($token) ? $token[0] : $token) {
 				case T_DOC_COMMENT:
 					$docComment = $token[1];
-				case T_WHITESPACE:
-				case T_COMMENT:
-					continue 2;
+					break;
 
-				case T_STRING:
-				case $T_NS_SEPARATOR:
-				case T_VARIABLE:
-					if ($expected) {
-						$name .= $token[1];
-					}
-					continue 2;
+				case T_NAMESPACE:
+					$namespace = self::fetch($tokens, array(T_STRING, T_NS_SEPARATOR)) . '\\';
+					$uses = array();
+					break;
 
-				case T_FUNCTION:
-				case T_VAR:
-				case T_PUBLIC:
-				case T_PROTECTED:
-				case $T_NAMESPACE:
 				case T_CLASS:
 				case T_INTERFACE:
-					$expected = $token[0];
-					$name = NULL;
-					continue 2;
-
-				case T_STATIC:
-				case T_ABSTRACT:
-				case T_FINAL:
-					continue 2; // ignore in expectation
-
-				case T_CURLY_OPEN:
-				case T_DOLLAR_OPEN_CURLY_BRACES:
-					$level++;
-				}
-			}
-
-			if ($expected) {
-				switch ($expected) {
-				case T_CLASS:
-				case T_INTERFACE:
-					$class = $namespace . $name;
-					$classLevel = $level;
-					$name = '';
-					// break intentionally omitted
-				case T_FUNCTION:
-					if ($token === '&') {
-						continue 2; // ignore
-					}
-				case T_VAR:
-				case T_PUBLIC:
-				case T_PROTECTED:
-					if ($class && $name !== NULL && $docComment) {
-						self::$cache[$class][$name] = self::parseComment($docComment);
+				case PHP_VERSION_ID < 50400 ? -1 : T_TRAIT:
+					if ($name = self::fetch($tokens, T_STRING)) {
+						$class = $namespace . $name;
+						$classLevel = $level + 1;
+						if ($docComment) {
+							$res[$class]['class'] = $docComment;
+						}
+						if ($uses) {
+							$res[$class]['use'] = $uses;
+						}
 					}
 					break;
 
-				case $T_NAMESPACE:
-					$namespace = $name . '\\';
-				}
+				case T_FUNCTION:
+					self::fetch($tokens, '&');
+					if ($level === $classLevel && $docComment && ($name = self::fetch($tokens, T_STRING))) {
+						$res[$class][$name] = $docComment;
+					}
+					break;
 
-				$expected = $docComment = NULL;
-			}
+				case T_VAR:
+				case T_PUBLIC:
+				case T_PROTECTED:
+					self::fetch($tokens, T_STATIC);
+					if ($level === $classLevel && $docComment && ($name = self::fetch($tokens, T_VARIABLE))) {
+						$res[$class][$name] = $docComment;
+					}
+					break;
 
-			if ($token === ';') {
-				$docComment = NULL;
-			} elseif ($token === '{') {
-				$docComment = NULL;
-				$level++;
-			} elseif ($token === '}') {
-				$level--;
-				if ($level === $classLevel) {
-					$class = NULL;
-				}
+				case T_USE:
+					while (!$class && ($name = self::fetch($tokens, array(T_STRING, T_NS_SEPARATOR)))) {
+						if (self::fetch($tokens, T_AS)) {
+							$uses[self::fetch($tokens, T_STRING)] = ltrim($name, '\\');
+						} else {
+							$tmp = explode('\\', $name);
+							$uses[end($tmp)] = $name;
+						}
+						if (!self::fetch($tokens, ',')) {
+							break;
+						}
+					}
+					break;
+
+				case T_CURLY_OPEN:
+				case T_DOLLAR_OPEN_CURLY_BRACES:
+				case '{':
+					$level++;
+					break;
+
+				case '}':
+					if ($level === $classLevel) {
+						$class = $classLevel = NULL;
+					}
+					$level--;
+					// break omitted
+				case ';':
+					$docComment = NULL;
 			}
 		}
+
+		return $res;
 	}
 
 
+	private static function fetch(& $tokens, $take)
+	{
+		$res = NULL;
+		while ($token = current($tokens)) {
+			list($token, $s) = is_array($token) ? $token : array($token, $token);
+			if (in_array($token, (array) $take, TRUE)) {
+				$res .= $s;
+			} elseif (!in_array($token, array(T_DOC_COMMENT, T_WHITESPACE, T_COMMENT), TRUE)) {
+				break;
+			}
+			next($tokens);
+		}
+		return $res;
+	}
+
 
 	/********************* backend ****************d*g**/
-
 
 
 	/**
@@ -343,7 +378,6 @@ final class AnnotationsParser
 	{
 		self::$cacheStorage = $storage;
 	}
-
 
 
 	/**

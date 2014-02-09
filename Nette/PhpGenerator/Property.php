@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\PhpGenerator;
@@ -14,34 +10,39 @@ namespace Nette\PhpGenerator;
 use Nette;
 
 
-
 /**
  * Class property description.
  *
  * @author     David Grudl
  *
- * @method Property setName(string $name)
- * @method Property setValue(mixed $value)
- * @method Property setStatic(bool $on)
- * @method Property setVisibility(string $access)
- * @method Property addDocument(string $doc)
+ * @method Property setName(string)
+ * @method string getName()
+ * @method Property setValue(mixed)
+ * @method mixed getValue()
+ * @method Property setStatic(bool)
+ * @method bool isStatic()
+ * @method Property setVisibility(string)
+ * @method string getVisibility()
+ * @method Property setDocuments(string[])
+ * @method string[] getDocuments()
+ * @method Property addDocument(string)
  */
 class Property extends Nette\Object
 {
 	/** @var string */
-	public $name;
+	private $name;
 
 	/** @var mixed */
 	public $value;
 
 	/** @var bool */
-	public $static;
+	private $static;
 
 	/** @var string  public|protected|private */
-	public $visibility = 'public';
+	private $visibility = 'public';
 
 	/** @var array of string */
-	public $documents = array();
+	private $documents = array();
 
 
 	/** @return Property */
@@ -55,13 +56,6 @@ class Property extends Nette\Object
 		$prop->visibility = $from->isPrivate() ? 'private' : ($from->isProtected() ? 'protected' : 'public');
 		$prop->documents = preg_replace('#^\s*\* ?#m', '', trim($from->getDocComment(), "/* \r\n"));
 		return $prop;
-	}
-
-
-
-	public function __call($name, $args)
-	{
-		return Nette\ObjectMixin::callProperty($this, $name, $args);
 	}
 
 }

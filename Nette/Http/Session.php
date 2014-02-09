@@ -2,17 +2,12 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Http;
 
 use Nette;
-
 
 
 /**
@@ -69,13 +64,11 @@ class Session extends Nette\Object
 	private $response;
 
 
-
 	public function __construct(IRequest $request, IResponse $response)
 	{
 		$this->request = $request;
 		$this->response = $response;
 	}
-
 
 
 	/**
@@ -96,14 +89,16 @@ class Session extends Nette\Object
 			unset($_COOKIE[session_name()]);
 		}
 
-		set_error_handler(function($severity, $message) use (& $error) { // session_start returns FALSE on failure since PHP 5.3.0.
+		set_error_handler(function($severity, $message) use (& $error) { // session_start returns FALSE on failure only sometimes
 			if (($severity & error_reporting()) === $severity) {
 				$error = $message;
 				restore_error_handler();
 			}
 		});
 		session_start();
-		restore_error_handler();
+		if (!$error) {
+			restore_error_handler();
+		}
 		$this->response->removeDuplicateCookies();
 		if ($error) {
 			@session_write_close(); // this is needed
@@ -128,7 +123,7 @@ class Session extends Nette\Object
 		// browser closing detection
 		$browserKey = $this->request->getCookie('nette-browser');
 		if (!$browserKey) {
-			$browserKey = Nette\Utils\Strings::random();
+			$browserKey = Nette\Utils\Random::generate();
 		}
 		$browserClosed = !isset($nf['B']) || $nf['B'] !== $browserKey;
 		$nf['B'] = $browserKey;
@@ -167,7 +162,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Has been session started?
 	 * @return bool
@@ -176,7 +170,6 @@ class Session extends Nette\Object
 	{
 		return (bool) self::$started;
 	}
-
 
 
 	/**
@@ -191,7 +184,6 @@ class Session extends Nette\Object
 			self::$started = FALSE;
 		}
 	}
-
 
 
 	/**
@@ -214,7 +206,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Does session exists for the current request?
 	 * @return bool
@@ -223,7 +214,6 @@ class Session extends Nette\Object
 	{
 		return self::$started || $this->request->getCookie($this->getName()) !== NULL;
 	}
-
 
 
 	/**
@@ -248,7 +238,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns the current session ID. Don't make dependencies, can be changed for each request.
 	 * @return string
@@ -259,11 +248,10 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets the session name to a specified one.
 	 * @param  string
-	 * @return Session  provides a fluent interface
+	 * @return self
 	 */
 	public function setName($name)
 	{
@@ -278,7 +266,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Gets the session name.
 	 * @return string
@@ -289,9 +276,7 @@ class Session extends Nette\Object
 	}
 
 
-
 	/********************* sections management ****************d*g**/
-
 
 
 	/**
@@ -307,7 +292,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Checks if a session section exist and is not empty.
 	 * @param  string
@@ -321,7 +305,6 @@ class Session extends Nette\Object
 
 		return !empty($_SESSION['__NF']['DATA'][$section]);
 	}
-
 
 
 	/**
@@ -343,9 +326,9 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
-	 * Cleans and minimizes meta structures.
+	 * Cleans and minimizes meta structures. This method is called automatically on shutdown, do not call it directly.
+	 * @internal
 	 * @return void
 	 */
 	public function clean()
@@ -370,22 +353,16 @@ class Session extends Nette\Object
 		if (empty($nf['DATA'])) {
 			unset($nf['DATA']);
 		}
-
-		if (empty($_SESSION)) {
-			//$this->destroy(); only when shutting down
-		}
 	}
-
 
 
 	/********************* configuration ****************d*g**/
 
 
-
 	/**
 	 * Sets session options.
 	 * @param  array
-	 * @return Session  provides a fluent interface
+	 * @return self
 	 * @throws Nette\NotSupportedException
 	 * @throws Nette\InvalidStateException
 	 */
@@ -402,7 +379,6 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Returns all session options.
 	 * @return array
@@ -411,7 +387,6 @@ class Session extends Nette\Object
 	{
 		return $this->options;
 	}
-
 
 
 	/**
@@ -449,8 +424,8 @@ class Session extends Nette\Object
 				} elseif (function_exists('ini_set')) {
 					ini_set("session.$key", $value);
 
-				} elseif (!Nette\Framework::$iAmUsingBadHost) {
-					throw new Nette\NotSupportedException('Required function ini_set() is disabled.');
+				} elseif (ini_get("session.$key") != $value) { // intentionally ==
+					throw new Nette\NotSupportedException("Unable to set 'session.$key' to '$value' because function ini_set() is disabled.");
 				}
 			}
 		}
@@ -467,11 +442,10 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets the amount of time allowed between requests before the session will be terminated.
 	 * @param  string|int|DateTime  time, value 0 means "until the browser is closed"
-	 * @return Session  provides a fluent interface
+	 * @return self
 	 */
 	public function setExpiration($time)
 	{
@@ -491,13 +465,12 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets the session cookie parameters.
 	 * @param  string  path
 	 * @param  string  domain
 	 * @param  bool    secure
-	 * @return Session  provides a fluent interface
+	 * @return self
 	 */
 	public function setCookieParameters($path, $domain = NULL, $secure = NULL)
 	{
@@ -507,7 +480,6 @@ class Session extends Nette\Object
 			'cookie_secure' => $secure
 		));
 	}
-
 
 
 	/**
@@ -520,10 +492,9 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
 	 * Sets path of the directory used to save session data.
-	 * @return Session  provides a fluent interface
+	 * @return self
 	 */
 	public function setSavePath($path)
 	{
@@ -533,15 +504,14 @@ class Session extends Nette\Object
 	}
 
 
-
 	/**
-	 * Sets user session storage.
-	 * @return Session  provides a fluent interface
+	 * Sets user session storage for PHP < 5.4. For PHP >= 5.4, use setHandler().
+	 * @return self
 	 */
 	public function setStorage(ISessionStorage $storage)
 	{
 		if (self::$started) {
-			throw new Nette\InvalidStateException("Unable to set storage when session has been started.");
+			throw new Nette\InvalidStateException('Unable to set storage when session has been started.');
 		}
 		session_set_save_handler(
 			array($storage, 'open'), array($storage, 'close'), array($storage, 'read'),
@@ -550,6 +520,18 @@ class Session extends Nette\Object
 	}
 
 
+	/**
+	 * Sets user session handler.
+	 * @return self
+	 */
+	public function setHandler(\SessionHandlerInterface $handler)
+	{
+		if (self::$started) {
+			throw new Nette\InvalidStateException('Unable to set handler when session has been started.');
+		}
+		session_set_save_handler($handler);
+	}
+
 
 	/**
 	 * Sends the session cookies.
@@ -557,6 +539,10 @@ class Session extends Nette\Object
 	 */
 	private function sendCookie()
 	{
+		if (!headers_sent() && ob_get_level() && ob_get_length()) {
+			trigger_error('Possible problem: you are starting session while already having some data in output buffer. This may not work if the outputted data grows. Try starting the session earlier.', E_USER_NOTICE);
+		}
+
 		$cookie = $this->getCookieParameters();
 		$this->response->setCookie(
 			session_name(), session_id(),

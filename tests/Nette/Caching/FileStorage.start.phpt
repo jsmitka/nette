@@ -4,16 +4,14 @@
  * Test: Nette\Caching\Storages\FileStorage start().
  *
  * @author     David Grudl
- * @package    Nette\Caching
  */
 
 use Nette\Caching\Cache,
-	Nette\Caching\Storages\FileStorage;
-
+	Nette\Caching\Storages\FileStorage,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 $cache = new Cache(new FileStorage(TEMP_DIR));
@@ -21,7 +19,7 @@ $cache = new Cache(new FileStorage(TEMP_DIR));
 
 ob_start();
 $block = $cache->start('key');
-Assert::true( $block instanceof Nette\Caching\OutputHelper );
+Assert::type( 'Nette\Caching\OutputHelper', $block );
 echo 'Hello';
 $block->end();
 Assert::same( 'Hello', ob_get_clean() );

@@ -4,15 +4,13 @@
  * Test: Nette\Utils\Strings::trim()
  *
  * @author     David Grudl
- * @package    Nette\Utils
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::same( 'x',  Strings::trim(" \t\n\r\x00\x0B\xC2\xA0x") );

@@ -4,11 +4,10 @@
  * Test: Nette\Latte\Macros\UIMacros: {link ...}
  *
  * @author     David Grudl
- * @package    Nette\Latte
  */
 
-use Nette\Latte\Macros\UIMacros;
-
+use Nette\Latte\Macros\UIMacros,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
@@ -20,7 +19,7 @@ UIMacros::install($compiler);
 
 // {link ...}
 Assert::same( '<?php echo $_control->link("p") ?>',  $compiler->expandMacro('link', 'p', '')->openingCode );
-/*Assert::same( '<?php echo ($template->filter$_control->link("p")) ?>',  $compiler->expandMacro('link', 'p', 'filter')->openingCode );*/
+Assert::same( '<?php echo $template->filter($_control->link("p")) ?>',  $compiler->expandMacro('link', 'p', 'filter')->openingCode );
 Assert::same( '<?php echo $_control->link("p:a") ?>',  $compiler->expandMacro('link', 'p:a', '')->openingCode );
 Assert::same( '<?php echo $_control->link($dest) ?>',  $compiler->expandMacro('link', '$dest', '')->openingCode );
 Assert::same( '<?php echo $_control->link($p:$a) ?>',  $compiler->expandMacro('link', '$p:$a', '')->openingCode );

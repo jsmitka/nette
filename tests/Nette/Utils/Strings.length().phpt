@@ -4,15 +4,13 @@
  * Test: Nette\Utils\Strings::length()
  *
  * @author     David Grudl
- * @package    Nette\Utils
  */
 
-use Nette\Utils\Strings;
-
+use Nette\Utils\Strings,
+	Tester\Assert;
 
 
 require __DIR__ . '/../bootstrap.php';
-
 
 
 Assert::same( 0,  Strings::length('') );

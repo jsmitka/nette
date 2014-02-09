@@ -2,11 +2,7 @@
 
 /**
  * This file is part of the Nette Framework (http://nette.org)
- *
  * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
- *
- * For the full copyright and license information, please view
- * the file license.txt that was distributed with this source code.
  */
 
 namespace Nette\Loaders;
@@ -14,20 +10,20 @@ namespace Nette\Loaders;
 use Nette;
 
 
-
 /**
  * Nette auto loader is responsible for loading Nette classes and interfaces.
  *
  * @author     David Grudl
  */
-class NetteLoader extends AutoLoader
+class NetteLoader extends Nette\Object
 {
 	/** @var NetteLoader */
 	private static $instance;
 
 	/** @var array */
 	public $renamed = array(
-		'Nette\Configurator' => 'Nette\Config\Configurator',
+		'Nette\Config\Configurator' => 'Nette\Configurator',
+		'Nette\Config\CompilerExtension' => 'Nette\DI\CompilerExtension',
 		'Nette\Http\User' => 'Nette\Security\User',
 		'Nette\Templating\DefaultHelpers' => 'Nette\Templating\Helpers',
 		'Nette\Latte\ParseException' => 'Nette\Latte\CompileException',
@@ -52,6 +48,7 @@ class NetteLoader extends AutoLoader
 		'Nette\ArrayHash' => '/common/ArrayHash',
 		'Nette\ArrayList' => '/common/ArrayList',
 		'Nette\Callback' => '/common/Callback',
+		'Nette\Configurator' => '/common/Configurator',
 		'Nette\Database\Reflection\AmbiguousReferenceKeyException' => '/Database/Reflection/exceptions',
 		'Nette\Database\Reflection\MissingReferenceException' => '/Database/Reflection/exceptions',
 		'Nette\DI\MissingServiceException' => '/DI/exceptions',
@@ -60,11 +57,8 @@ class NetteLoader extends AutoLoader
 		'Nette\DeprecatedException' => '/common/exceptions',
 		'Nette\DirectoryNotFoundException' => '/common/exceptions',
 		'Nette\Environment' => '/common/Environment',
-		'Nette\FatalErrorException' => '/common/exceptions',
 		'Nette\FileNotFoundException' => '/common/exceptions',
 		'Nette\Framework' => '/common/Framework',
-		'Nette\FreezableObject' => '/common/FreezableObject',
-		'Nette\IFreezable' => '/common/IFreezable',
 		'Nette\IOException' => '/common/exceptions',
 		'Nette\Image' => '/common/Image',
 		'Nette\InvalidArgumentException' => '/common/exceptions',
@@ -89,7 +83,6 @@ class NetteLoader extends AutoLoader
 	);
 
 
-
 	/**
 	 * Returns singleton instance with lazy instantiation.
 	 * @return NetteLoader
@@ -103,6 +96,16 @@ class NetteLoader extends AutoLoader
 	}
 
 
+	/**
+	 * Register autoloader.
+	 * @param  bool  prepend autoloader?
+	 * @return void
+	 */
+	public function register($prepend = FALSE)
+	{
+		spl_autoload_register(array($this, 'tryLoad'), TRUE, (bool) $prepend);
+	}
+
 
 	/**
 	 * Handles autoloading of classes or interfaces.
@@ -112,18 +115,16 @@ class NetteLoader extends AutoLoader
 	public function tryLoad($type)
 	{
 		$type = ltrim($type, '\\');
-		/**/if (isset($this->renamed[$type])) {
+		if (isset($this->renamed[$type])) {
 			class_alias($this->renamed[$type], $type);
 			trigger_error("Class $type has been renamed to {$this->renamed[$type]}.", E_USER_WARNING);
 
-		} else/**/if (isset($this->list[$type])) {
-			Nette\Utils\LimitedScope::load(NETTE_DIR . $this->list[$type] . '.php', TRUE);
-			self::$count++;
+		} elseif (isset($this->list[$type])) {
+			require __DIR__ . '/../' . $this->list[$type] . '.php';
 
-		}/**/ elseif (substr($type, 0, 6) === 'Nette\\' && is_file($file = NETTE_DIR . strtr(substr($type, 5), '\\', '/') . '.php')) {
-			Nette\Utils\LimitedScope::load($file, TRUE);
-			self::$count++;
-		}/**/
+		} elseif (substr($type, 0, 6) === 'Nette\\' && is_file($file = __DIR__ . '/../' . strtr(substr($type, 5), '\\', '/') . '.php')) {
+			require $file;
+		}
 	}
 
 }
